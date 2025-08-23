@@ -27,6 +27,22 @@ class Event extends Model
         'status',
         'featured_image',
         'created_by',
+        'category_id',
+        'tags',
+        'series_id',
+        'series_order',
+        'has_waitlist',
+        'waitlist_capacity',
+        'early_bird_enabled',
+        'early_bird_deadline',
+        'early_bird_price',
+        'regular_price',
+        'requires_confirmation',
+        'confirmation_message',
+        'has_custom_fields',
+        'is_archived',
+        'archived_at',
+        'archived_by',
     ];
 
     protected function casts(): array
@@ -38,6 +54,16 @@ class Event extends Model
             'end_time' => 'datetime:H:i',
             'registration_deadline' => 'datetime',
             'max_capacity' => 'integer',
+            'tags' => 'array',
+            'has_waitlist' => 'boolean',
+            'early_bird_enabled' => 'boolean',
+            'early_bird_deadline' => 'datetime',
+            'early_bird_price' => 'decimal:2',
+            'regular_price' => 'decimal:2',
+            'requires_confirmation' => 'boolean',
+            'has_custom_fields' => 'boolean',
+            'is_archived' => 'boolean',
+            'archived_at' => 'datetime',
         ];
     }
 
@@ -133,6 +159,62 @@ class Event extends Model
             ->whereHas('checkIn')
             ->withPivot(['registration_code', 'registration_date'])
             ->withTimestamps();
+    }
+
+    /**
+     * Get the category for this event.
+     */
+    public function category()
+    {
+        return $this->belongsTo(EventCategory::class);
+    }
+
+    /**
+     * Get the series for this event.
+     */
+    public function series()
+    {
+        return $this->belongsTo(EventSeries::class);
+    }
+
+    /**
+     * Get the waitlist entries for this event.
+     */
+    public function waitlist()
+    {
+        return $this->hasMany(Waitlist::class);
+    }
+
+    /**
+     * Get the feedback for this event.
+     */
+    public function feedback()
+    {
+        return $this->hasMany(EventFeedback::class);
+    }
+
+    /**
+     * Get the photos for this event.
+     */
+    public function photos()
+    {
+        return $this->hasMany(EventPhoto::class);
+    }
+
+    /**
+     * Get the custom registration fields for this event.
+     */
+    public function customFields()
+    {
+        return $this->hasMany(CustomRegistrationField::class);
+    }
+
+    /**
+     * Get the user who archived this event.
+     */
+    public function archivedBy()
+    {
+        return $this->belongsTo(User::class, 'archived_by');
     }
 
     // =====================================================
@@ -239,6 +321,90 @@ class Event extends Model
     public function scopeCreatedBy($query, $userId)
     {
         return $query->where('created_by', $userId);
+    }
+
+    /**
+     * Scope for events by category.
+     */
+    public function scopeByCategory($query, $categoryId)
+    {
+        return $query->where('category_id', $categoryId);
+    }
+
+    /**
+     * Scope for events in series.
+     */
+    public function scopeInSeries($query, $seriesId)
+    {
+        return $query->where('series_id', $seriesId);
+    }
+
+    /**
+     * Scope for events with waitlist.
+     */
+    public function scopeWithWaitlist($query)
+    {
+        return $query->where('has_waitlist', true);
+    }
+
+    /**
+     * Scope for events with early bird pricing.
+     */
+    public function scopeWithEarlyBird($query)
+    {
+        return $query->where('early_bird_enabled', true);
+    }
+
+    /**
+     * Scope for events requiring confirmation.
+     */
+    public function scopeRequiringConfirmation($query)
+    {
+        return $query->where('requires_confirmation', true);
+    }
+
+    /**
+     * Scope for events with custom fields.
+     */
+    public function scopeWithCustomFields($query)
+    {
+        return $query->where('has_custom_fields', true);
+    }
+
+    /**
+     * Scope for archived events.
+     */
+    public function scopeArchived($query)
+    {
+        return $query->where('is_archived', true);
+    }
+
+    /**
+     * Scope for non-archived events.
+     */
+    public function scopeNotArchived($query)
+    {
+        return $query->where('is_archived', false);
+    }
+
+    /**
+     * Scope for events by tags.
+     */
+    public function scopeByTags($query, array $tags)
+    {
+        return $query->whereJsonContains('tags', $tags);
+    }
+
+    /**
+     * Scope for events with any of the given tags.
+     */
+    public function scopeWithAnyTags($query, array $tags)
+    {
+        return $query->where(function ($q) use ($tags) {
+            foreach ($tags as $tag) {
+                $q->orWhereJsonContains('tags', $tag);
+            }
+        });
     }
 
     // =====================================================
@@ -701,5 +867,214 @@ class Event extends Model
             'cancelled' => 'red',
             default => 'gray'
         };
+    }
+
+    /**
+     * Check if the event is archived.
+     */
+    public function isArchived(): bool
+    {
+        return $this->is_archived;
+    }
+
+    /**
+     * Check if the event has waitlist enabled.
+     */
+    public function hasWaitlist(): bool
+    {
+        return $this->has_waitlist;
+    }
+
+    /**
+     * Check if the event has early bird pricing.
+     */
+    public function hasEarlyBirdPricing(): bool
+    {
+        return $this->early_bird_enabled;
+    }
+
+    /**
+     * Check if early bird pricing is still available.
+     */
+    public function isEarlyBirdAvailable(): bool
+    {
+        if (!$this->hasEarlyBirdPricing()) {
+            return false;
+        }
+
+        return $this->early_bird_deadline && $this->early_bird_deadline->isFuture();
+    }
+
+    /**
+     * Get the current price for the event.
+     */
+    public function getCurrentPrice(): ?float
+    {
+        if (!$this->regular_price) {
+            return null;
+        }
+
+        if ($this->isEarlyBirdAvailable()) {
+            return $this->early_bird_price;
+        }
+
+        return $this->regular_price;
+    }
+
+    /**
+     * Check if the event requires confirmation.
+     */
+    public function requiresConfirmation(): bool
+    {
+        return $this->requires_confirmation;
+    }
+
+    /**
+     * Check if the event has custom fields.
+     */
+    public function hasCustomFields(): bool
+    {
+        return $this->has_custom_fields;
+    }
+
+    /**
+     * Get waitlist statistics.
+     */
+    public function getWaitlistStats(): array
+    {
+        if (!$this->hasWaitlist()) {
+            return [
+                'enabled' => false,
+                'capacity' => 0,
+                'waiting' => 0,
+                'available' => 0,
+            ];
+        }
+
+        $waiting = $this->waitlist()->waiting()->count();
+        $capacity = $this->waitlist_capacity ?? 0;
+        $available = $capacity > 0 ? max(0, $capacity - $waiting) : null;
+
+        return [
+            'enabled' => true,
+            'capacity' => $capacity,
+            'waiting' => $waiting,
+            'available' => $available,
+        ];
+    }
+
+    /**
+     * Check if waitlist is full.
+     */
+    public function isWaitlistFull(): bool
+    {
+        if (!$this->hasWaitlist()) {
+            return false;
+        }
+
+        $stats = $this->getWaitlistStats();
+        return $stats['capacity'] > 0 && $stats['available'] === 0;
+    }
+
+    /**
+     * Check if user can join waitlist.
+     */
+    public function canJoinWaitlist(?User $user = null): bool
+    {
+        if (!$this->hasWaitlist() || $this->isFull()) {
+            return false;
+        }
+
+        if ($user && $user->isOnWaitlistFor($this)) {
+            return false;
+        }
+
+        return !$this->isWaitlistFull();
+    }
+
+    /**
+     * Archive the event.
+     */
+    public function archive(?User $user = null): bool
+    {
+        $this->is_archived = true;
+        $this->archived_at = now();
+        $this->archived_by = $user?->id ?? auth()->id();
+        return $this->save();
+    }
+
+    /**
+     * Unarchive the event.
+     */
+    public function unarchive(): bool
+    {
+        $this->is_archived = false;
+        $this->archived_at = null;
+        $this->archived_by = null;
+        return $this->save();
+    }
+
+    /**
+     * Get the event's category name.
+     */
+    public function getCategoryName(): ?string
+    {
+        return $this->category?->name;
+    }
+
+    /**
+     * Get the event's series name.
+     */
+    public function getSeriesName(): ?string
+    {
+        return $this->series?->name;
+    }
+
+    /**
+     * Get the event's tags as an array.
+     */
+    public function getTagsArray(): array
+    {
+        return $this->tags ?? [];
+    }
+
+    /**
+     * Check if the event has a specific tag.
+     */
+    public function hasTag(string $tag): bool
+    {
+        return in_array($tag, $this->getTagsArray());
+    }
+
+    /**
+     * Get the event's average rating.
+     */
+    public function getAverageRating(): float
+    {
+        return $this->feedback()->approved()->avg('rating') ?? 0.0;
+    }
+
+    /**
+     * Get the event's rating count.
+     */
+    public function getRatingCount(): int
+    {
+        return $this->feedback()->approved()->count();
+    }
+
+    /**
+     * Get the event's featured photos.
+     */
+    public function getFeaturedPhotos()
+    {
+        return $this->photos()->featured()->ordered()->get();
+    }
+
+    /**
+     * Get the event's custom registration fields.
+     */
+    public function getActiveCustomFields()
+    {
+        return $this->customFields()->active()->ordered()->get();
     }
 }

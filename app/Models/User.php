@@ -105,6 +105,46 @@ class User extends Authenticatable
         return $this->hasMany(CheckIn::class, 'checked_in_by');
     }
 
+    /**
+     * Get the waitlist entries for this user.
+     */
+    public function waitlistEntries()
+    {
+        return $this->hasMany(Waitlist::class);
+    }
+
+    /**
+     * Get the feedback provided by this user.
+     */
+    public function eventFeedback()
+    {
+        return $this->hasMany(EventFeedback::class);
+    }
+
+    /**
+     * Get the photos uploaded by this user.
+     */
+    public function uploadedPhotos()
+    {
+        return $this->hasMany(EventPhoto::class, 'uploaded_by');
+    }
+
+    /**
+     * Get the event templates created by this user.
+     */
+    public function eventTemplates()
+    {
+        return $this->hasMany(EventTemplate::class, 'created_by');
+    }
+
+    /**
+     * Get the events archived by this user.
+     */
+    public function archivedEvents()
+    {
+        return $this->hasMany(Event::class, 'archived_by');
+    }
+
     // =====================================================
     // SCOPES
     // =====================================================
@@ -291,6 +331,54 @@ class User extends Authenticatable
             ->where('event_id', $event->id)
             ->where('status', 'confirmed')
             ->exists();
+    }
+
+    /**
+     * Check if user is on waitlist for a specific event.
+     */
+    public function isOnWaitlistFor(Event $event): bool
+    {
+        return $this->waitlistEntries()
+            ->where('event_id', $event->id)
+            ->where('status', 'waiting')
+            ->exists();
+    }
+
+    /**
+     * Check if user has provided feedback for a specific event.
+     */
+    public function hasProvidedFeedbackFor(Event $event): bool
+    {
+        return $this->eventFeedback()
+            ->where('event_id', $event->id)
+            ->exists();
+    }
+
+    /**
+     * Get user's waitlist position for a specific event.
+     */
+    public function getWaitlistPosition(Event $event): ?int
+    {
+        $waitlistEntry = $this->waitlistEntries()
+            ->where('event_id', $event->id)
+            ->where('status', 'waiting')
+            ->first();
+
+        if (!$waitlistEntry) {
+            return null;
+        }
+
+        return $waitlistEntry->position;
+    }
+
+    /**
+     * Get user's feedback for a specific event.
+     */
+    public function getFeedbackFor(Event $event)
+    {
+        return $this->eventFeedback()
+            ->where('event_id', $event->id)
+            ->first();
     }
 
     /**

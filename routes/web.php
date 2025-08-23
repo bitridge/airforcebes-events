@@ -7,6 +7,7 @@ use App\Http\Controllers\CheckInController;
 use App\Http\Controllers\Admin\EventController as AdminEventController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\AttendeeController;
+use App\Http\Controllers\Admin\ReportingController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('welcome');
@@ -81,6 +82,14 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
            Route::post('/attendees/{attendee}/communication', [AttendeeController::class, 'sendCommunication'])->name('attendees.communication');
            Route::post('/attendees/bulk-communication', [AttendeeController::class, 'bulkCommunication'])->name('attendees.bulk-communication');
            Route::post('/attendees/export-csv', [AttendeeController::class, 'exportCsv'])->name('attendees.export-csv');
+           
+           // Reporting routes
+           Route::get('/reports', [ReportingController::class, 'index'])->name('reports.index');
+           Route::get('/reports/events', [ReportingController::class, 'eventReports'])->name('reports.events');
+           Route::get('/reports/attendee-analytics', [ReportingController::class, 'attendeeAnalytics'])->name('reports.attendee-analytics');
+           Route::get('/reports/dashboard-widgets', [ReportingController::class, 'dashboardWidgets'])->name('reports.dashboard-widgets');
+           Route::post('/reports/export-event', [ReportingController::class, 'exportEventReport'])->name('reports.export-event');
+           Route::post('/reports/export-attendee-analytics', [ReportingController::class, 'exportAttendeeAnalytics'])->name('reports.export-attendee-analytics');
     
     // Check-in routes
     Route::get('/check-in', [CheckInController::class, 'index'])->name('check-in.index');

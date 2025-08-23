@@ -3,63 +3,309 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreEventRequest;
+use App\Http\Requests\UpdateEventRequest;
+use App\Models\Event;
+use App\Models\Registration;
+use App\Models\CheckIn;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class EventController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request): View
     {
-        //
+        $query = Event::with(['creator', 'registrations'])
+            ->withCount(['confirmedRegistrations', 'checkIns']);
+
+        // Search
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('venue', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter by status
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by date
+        if ($request->filled('date_filter')) {
+            switch ($request->date_filter) {
+                case 'upcoming':
+                    $query->upcoming();
+                    break;
+                case 'past':
+                    $query->past();
+                    break;
+                case 'today':
+                    $query->whereDate('start_date', today());
+                    break;
+            }
+        }
+
+        // Sort
+        $sortBy = $request->get('sort_by', 'start_date');
+        $sortDir = $request->get('sort_dir', 'asc');
+        $query->orderBy($sortBy, $sortDir);
+
+        $events = $query->paginate(15)->withQueryString();
+
+        return view('admin.events.index', compact('events'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function create(): View
     {
-        //
+        return view('admin.events.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StoreEventRequest $request): RedirectResponse
     {
-        //
+        try {
+            DB::beginTransaction();
+
+            $data = $request->validated();
+            $data['slug'] = Str::slug($data['title']);
+            $data['created_by'] = auth()->id();
+
+            // Handle image upload
+            if ($request->hasFile('featured_image')) {
+                $path = $request->file('featured_image')->store('events', 'public');
+                $data['featured_image'] = $path;
+            }
+
+            $event = Event::create($data);
+
+            DB::commit();
+
+            return redirect()
+                ->route('admin.events.show', $event)
+                ->with('success', 'Event created successfully!');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()
+                ->withInput()
+                ->with('error', 'Failed to create event: ' . $e->getMessage());
+        }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function show(Event $event): View
     {
-        //
+        $event->load(['creator', 'registrations.user', 'checkIns.checkedInBy']);
+        
+        $stats = [
+            'total_registrations' => $event->registrations()->count(),
+            'confirmed_registrations' => $event->confirmedRegistrations()->count(),
+            'check_ins' => $event->checkIns()->count(),
+            'capacity_utilization' => $event->max_capacity ? 
+                round(($event->confirmedRegistrations()->count() / $event->max_capacity) * 100, 1) : 0,
+        ];
+
+        $registrations = $event->registrations()
+            ->with(['user', 'checkIn'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+
+        return view('admin.events.show', compact('event', 'stats', 'registrations'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function edit(Event $event): View
     {
-        //
+        return view('admin.events.edit', compact('event'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function update(UpdateEventRequest $request, Event $event): RedirectResponse
     {
-        //
+        try {
+            DB::beginTransaction();
+
+            $data = $request->validated();
+            
+            // Handle image upload
+            if ($request->hasFile('featured_image')) {
+                // Delete old image
+                if ($event->featured_image) {
+                    Storage::disk('public')->delete($event->featured_image);
+                }
+                $path = $request->file('featured_image')->store('events', 'public');
+                $data['featured_image'] = $path;
+            }
+
+            $event->update($data);
+
+            DB::commit();
+
+            return redirect()
+                ->route('admin.events.show', $event)
+                ->with('success', 'Event updated successfully!');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()
+                ->withInput()
+                ->with('error', 'Failed to update event: ' . $e->getMessage());
+        }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function destroy(Event $event): RedirectResponse
     {
-        //
+        try {
+            // Check if event has registrations
+            if ($event->registrations()->exists()) {
+                return back()->with('error', 'Cannot delete event with existing registrations.');
+            }
+
+            // Delete featured image
+            if ($event->featured_image) {
+                Storage::disk('public')->delete($event->featured_image);
+            }
+
+            $event->delete();
+
+            return redirect()
+                ->route('admin.events.index')
+                ->with('success', 'Event deleted successfully!');
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to delete event: ' . $e->getMessage());
+        }
+    }
+
+    public function duplicate(Event $event): RedirectResponse
+    {
+        try {
+            $newEvent = $event->replicate();
+            $newEvent->title = $event->title . ' (Copy)';
+            $newEvent->slug = Str::slug($event->title . ' copy ' . now()->timestamp);
+            $newEvent->status = 'draft';
+            $newEvent->start_date = now()->addWeek();
+            $newEvent->end_date = now()->addWeek()->addDay();
+            $newEvent->registration_deadline = now()->addWeek()->subDay();
+            $newEvent->created_by = auth()->id();
+            $newEvent->created_at = now();
+            $newEvent->updated_at = now();
+            
+            // Don't copy image
+            $newEvent->featured_image = null;
+            
+            $newEvent->save();
+
+            return redirect()
+                ->route('admin.events.edit', $newEvent)
+                ->with('success', 'Event duplicated successfully! You can now modify the details.');
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to duplicate event: ' . $e->getMessage());
+        }
+    }
+
+    public function bulkAction(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'action' => 'required|in:delete,publish,unpublish',
+            'event_ids' => 'required|array|min:1',
+            'event_ids.*' => 'exists:events,id'
+        ]);
+
+        $events = Event::whereIn('id', $request->event_ids);
+
+        try {
+            switch ($request->action) {
+                case 'delete':
+                    // Check for registrations
+                    $eventsWithRegistrations = $events->whereHas('registrations')->count();
+                    if ($eventsWithRegistrations > 0) {
+                        return back()->with('error', "Cannot delete {$eventsWithRegistrations} events with existing registrations.");
+                    }
+                    $events->delete();
+                    $message = 'Events deleted successfully!';
+                    break;
+
+                case 'publish':
+                    $events->update(['status' => 'published']);
+                    $message = 'Events published successfully!';
+                    break;
+
+                case 'unpublish':
+                    $events->update(['status' => 'draft']);
+                    $message = 'Events unpublished successfully!';
+                    break;
+            }
+
+            return back()->with('success', $message);
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to perform bulk action: ' . $e->getMessage());
+        }
+    }
+
+    public function exportAttendees(Event $event): \Symfony\Component\HttpFoundation\BinaryFileResponse
+    {
+        $registrations = $event->registrations()
+            ->with('user')
+            ->where('status', 'confirmed')
+            ->get();
+
+        $filename = "event_{$event->slug}_attendees_" . now()->format('Y-m-d') . ".csv";
+        $filepath = storage_path("app/temp/{$filename}");
+
+        $file = fopen($filepath, 'w');
+        
+        // Headers
+        fputcsv($file, ['Name', 'Email', 'Phone', 'Organization', 'Registration Date', 'Check-in Status']);
+        
+        foreach ($registrations as $registration) {
+            fputcsv($file, [
+                $registration->user->name,
+                $registration->user->email,
+                $registration->user->phone,
+                $registration->user->organization,
+                $registration->registration_date->format('Y-m-d H:i'),
+                $registration->isCheckedIn() ? 'Checked In' : 'Not Checked In'
+            ]);
+        }
+        
+        fclose($file);
+
+        return response()->download($filepath)->deleteFileAfterSend();
+    }
+
+    public function exportCheckInReport(Event $event): \Symfony\Component\HttpFoundation\BinaryFileResponse
+    {
+        $checkIns = $event->checkIns()
+            ->with(['registration.user', 'checkedInBy'])
+            ->orderBy('checked_in_at')
+            ->get();
+
+        $filename = "event_{$event->slug}_checkins_" . now()->format('Y-m-d') . ".csv";
+        $filepath = storage_path("app/temp/{$filename}");
+
+        $file = fopen($filepath, 'w');
+        
+        // Headers
+        fputcsv($file, ['Name', 'Email', 'Check-in Time', 'Method', 'Checked in by']);
+        
+        foreach ($checkIns as $checkIn) {
+            fputcsv($file, [
+                $checkIn->registration->user->name,
+                $checkIn->registration->user->email,
+                $checkIn->checked_in_at->format('Y-m-d H:i:s'),
+                $checkIn->check_in_method,
+                $checkIn->checkedInBy->name ?? 'System'
+            ]);
+        }
+        
+        fclose($file);
+
+        return response()->download($filepath)->deleteFileAfterSend();
     }
 }

@@ -7,9 +7,7 @@ use App\Http\Controllers\CheckInController;
 use App\Http\Controllers\Admin\EventController as AdminEventController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('welcome');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -21,13 +19,16 @@ Route::get('/events/{event:slug}', [EventController::class, 'show'])->name('even
 
 // Authenticated user routes
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::patch('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Registration routes
     Route::post('/events/{event}/register', [RegistrationController::class, 'store'])->name('registrations.store');
     Route::get('/my-registrations', [RegistrationController::class, 'index'])->name('registrations.index');
+    Route::get('/registrations/{registration}/qr-code', [RegistrationController::class, 'downloadQrCode'])->name('registrations.qr-code');
     Route::delete('/registrations/{registration}', [RegistrationController::class, 'destroy'])->name('registrations.destroy');
 
     // Check-in routes

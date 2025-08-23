@@ -1,0 +1,160 @@
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use App\Models\Event;
+use App\Models\Registration;
+
+class StoreRegistrationRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        // User must be authenticated and the event must exist
+        if (!auth()->check()) {
+            return false;
+        }
+
+        $event = $this->route('event');
+        
+        // Event must exist and be open for registration
+        return $event && $event->canRegister(auth()->user());
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'event_id' => [
+                'required',
+                'exists:events,id',
+            ],
+            'terms_accepted' => [
+                'required',
+                'accepted',
+            ],
+            'emergency_contact_name' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+            'emergency_contact_phone' => [
+                'nullable',
+                'string',
+                'max:20',
+            ],
+            'dietary_requirements' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
+            'special_accommodations' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
+        ];
+    }
+
+    /**
+     * Get custom validation messages.
+     */
+    public function messages(): array
+    {
+        return [
+            'event_id.required' => 'The event ID is required.',
+            'event_id.exists' => 'The selected event does not exist.',
+            
+            'terms_accepted.required' => 'You must accept the terms and conditions.',
+            'terms_accepted.accepted' => 'You must accept the terms and conditions to register.',
+            
+            'emergency_contact_name.max' => 'Emergency contact name cannot exceed 255 characters.',
+            'emergency_contact_phone.max' => 'Emergency contact phone cannot exceed 20 characters.',
+            'dietary_requirements.max' => 'Dietary requirements cannot exceed 1,000 characters.',
+            'special_accommodations.max' => 'Special accommodations cannot exceed 1,000 characters.',
+        ];
+    }
+
+    /**
+     * Get custom attributes for validator errors.
+     */
+    public function attributes(): array
+    {
+        return [
+            'event_id' => 'event',
+            'terms_accepted' => 'terms and conditions',
+            'emergency_contact_name' => 'emergency contact name',
+            'emergency_contact_phone' => 'emergency contact phone',
+            'dietary_requirements' => 'dietary requirements',
+            'special_accommodations' => 'special accommodations',
+        ];
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        $event = $this->route('event');
+        
+        if ($event) {
+            $this->merge([
+                'event_id' => $event->id,
+                'user_id' => auth()->id(),
+            ]);
+        }
+    }
+
+    /**
+     * Configure the validator instance.
+     */
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $event = $this->route('event');
+            $user = auth()->user();
+
+            if (!$event || !$user) {
+                return;
+            }
+
+            // Check if user is already registered
+            if ($user->isRegisteredFor($event)) {
+                $validator->errors()->add('event_id', 'You are already registered for this event.');
+                return;
+            }
+
+            // Check if event is full
+            if ($event->isFull()) {
+                $validator->errors()->add('event_id', 'This event is full. Registration is no longer available.');
+                return;
+            }
+
+            // Check if registration deadline has passed
+            if ($event->registration_deadline && $event->registration_deadline->isPast()) {
+                $validator->errors()->add('event_id', 'The registration deadline for this event has passed.');
+                return;
+            }
+
+            // Check if event is published
+            if (!$event->isPublished()) {
+                $validator->errors()->add('event_id', 'This event is not currently open for registration.');
+                return;
+            }
+
+            // Check if event has started
+            if ($event->hasStarted()) {
+                $validator->errors()->add('event_id', 'This event has already started. Registration is no longer available.');
+                return;
+            }
+        });
+    }
+}

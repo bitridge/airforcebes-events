@@ -4,7 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Str;
+use Illuminate\Support\Carbon;
 
 class Event extends Model
 {
@@ -59,7 +61,17 @@ class Event extends Model
                 $event->slug = Str::slug($event->title);
             }
         });
+
+        static::updating(function ($event) {
+            if ($event->isDirty('title') && empty($event->slug)) {
+                $event->slug = Str::slug($event->title);
+            }
+        });
     }
+
+    // =====================================================
+    // RELATIONSHIPS
+    // =====================================================
 
     /**
      * Get the user who created this event.
@@ -86,11 +98,394 @@ class Event extends Model
     }
 
     /**
+     * Get cancelled registrations for this event.
+     */
+    public function cancelledRegistrations()
+    {
+        return $this->hasMany(Registration::class)->where('status', 'cancelled');
+    }
+
+    /**
+     * Get check-ins for this event through registrations.
+     */
+    public function checkIns()
+    {
+        return $this->hasManyThrough(CheckIn::class, Registration::class);
+    }
+
+    /**
+     * Get users who registered for this event.
+     */
+    public function registeredUsers()
+    {
+        return $this->belongsToMany(User::class, 'registrations')
+            ->wherePivot('status', 'confirmed')
+            ->withPivot(['registration_code', 'registration_date', 'status'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Get users who checked in for this event.
+     */
+    public function checkedInUsers()
+    {
+        return $this->belongsToMany(User::class, 'registrations')
+            ->whereHas('checkIn')
+            ->withPivot(['registration_code', 'registration_date'])
+            ->withTimestamps();
+    }
+
+    // =====================================================
+    // SCOPES
+    // =====================================================
+
+    /**
+     * Scope for published events.
+     */
+    public function scopePublished($query)
+    {
+        return $query->where('status', 'published');
+    }
+
+    /**
+     * Scope for draft events.
+     */
+    public function scopeDraft($query)
+    {
+        return $query->where('status', 'draft');
+    }
+
+    /**
+     * Scope for completed events.
+     */
+    public function scopeCompleted($query)
+    {
+        return $query->where('status', 'completed');
+    }
+
+    /**
+     * Scope for cancelled events.
+     */
+    public function scopeCancelled($query)
+    {
+        return $query->where('status', 'cancelled');
+    }
+
+    /**
+     * Scope for upcoming events.
+     */
+    public function scopeUpcoming($query)
+    {
+        return $query->where('start_date', '>=', now()->toDateString());
+    }
+
+    /**
+     * Scope for past events.
+     */
+    public function scopePast($query)
+    {
+        return $query->where('end_date', '<', now()->toDateString());
+    }
+
+    /**
+     * Scope for active events (published and upcoming).
+     */
+    public function scopeActive($query)
+    {
+        return $query->published()->upcoming();
+    }
+
+    /**
+     * Scope for events with open registration.
+     */
+    public function scopeOpenForRegistration($query)
+    {
+        return $query->published()
+            ->upcoming()
+            ->where(function ($q) {
+                $q->whereNull('registration_deadline')
+                  ->orWhere('registration_deadline', '>', now());
+            });
+    }
+
+    /**
+     * Scope for events with capacity.
+     */
+    public function scopeWithCapacity($query)
+    {
+        return $query->whereNotNull('max_capacity');
+    }
+
+    /**
+     * Scope for events by venue.
+     */
+    public function scopeByVenue($query, $venue)
+    {
+        return $query->where('venue', 'like', "%{$venue}%");
+    }
+
+    /**
+     * Scope for events in date range.
+     */
+    public function scopeInDateRange($query, $startDate, $endDate)
+    {
+        return $query->where('start_date', '>=', $startDate)
+            ->where('end_date', '<=', $endDate);
+    }
+
+    /**
+     * Scope for events created by user.
+     */
+    public function scopeCreatedBy($query, $userId)
+    {
+        return $query->where('created_by', $userId);
+    }
+
+    // =====================================================
+    // ACCESSORS
+    // =====================================================
+
+    /**
+     * Get formatted start date.
+     */
+    protected function formattedStartDate(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->start_date?->format('M j, Y')
+        );
+    }
+
+    /**
+     * Get formatted end date.
+     */
+    protected function formattedEndDate(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->end_date?->format('M j, Y')
+        );
+    }
+
+    /**
+     * Get formatted date range.
+     */
+    protected function formattedDateRange(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                if (!$this->start_date) return null;
+                
+                $start = $this->start_date->format('M j, Y');
+                
+                if ($this->start_date->isSameDay($this->end_date)) {
+                    return $start;
+                }
+                
+                return $start . ' - ' . $this->end_date->format('M j, Y');
+            }
+        );
+    }
+
+    /**
+     * Get formatted start time.
+     */
+    protected function formattedStartTime(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->start_time?->format('g:i A')
+        );
+    }
+
+    /**
+     * Get formatted end time.
+     */
+    protected function formattedEndTime(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->end_time?->format('g:i A')
+        );
+    }
+
+    /**
+     * Get formatted time range.
+     */
+    protected function formattedTimeRange(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                if (!$this->start_time) return null;
+                
+                $start = $this->start_time->format('g:i A');
+                $end = $this->end_time?->format('g:i A');
+                
+                return $end ? "{$start} - {$end}" : $start;
+            }
+        );
+    }
+
+    /**
+     * Get capacity status information.
+     */
+    protected function capacityStatus(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                if (!$this->max_capacity) {
+                    return [
+                        'total' => null,
+                        'registered' => $this->confirmedRegistrations()->count(),
+                        'available' => null,
+                        'percentage' => 0,
+                        'is_full' => false,
+                        'has_capacity' => false,
+                    ];
+                }
+
+                $registered = $this->confirmedRegistrations()->count();
+                $available = max(0, $this->max_capacity - $registered);
+                $percentage = $this->max_capacity > 0 ? round(($registered / $this->max_capacity) * 100, 1) : 0;
+
+                return [
+                    'total' => $this->max_capacity,
+                    'registered' => $registered,
+                    'available' => $available,
+                    'percentage' => $percentage,
+                    'is_full' => $available === 0,
+                    'has_capacity' => true,
+                ];
+            }
+        );
+    }
+
+    /**
+     * Get registration status information.
+     */
+    protected function registrationStatus(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                $isOpen = $this->isRegistrationOpen();
+                $reason = null;
+
+                if (!$this->isPublished()) {
+                    $reason = 'Event not published';
+                } elseif ($this->registration_deadline && $this->registration_deadline->isPast()) {
+                    $reason = 'Registration deadline passed';
+                } elseif ($this->isFull()) {
+                    $reason = 'Event is full';
+                } elseif ($this->start_date < now()->toDateString()) {
+                    $reason = 'Event has started';
+                }
+
+                return [
+                    'is_open' => $isOpen,
+                    'reason' => $reason,
+                    'deadline' => $this->registration_deadline,
+                    'deadline_formatted' => $this->registration_deadline?->format('M j, Y g:i A'),
+                ];
+            }
+        );
+    }
+
+    /**
+     * Get event duration in human readable format.
+     */
+    protected function duration(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                if (!$this->start_date || !$this->end_date) {
+                    return null;
+                }
+
+                $days = $this->start_date->diffInDays($this->end_date) + 1;
+                
+                if ($days === 1) {
+                    return '1 day';
+                } else {
+                    return "{$days} days";
+                }
+            }
+        );
+    }
+
+    /**
+     * Get days until event starts.
+     */
+    protected function daysUntilStart(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                if (!$this->start_date) return null;
+                
+                $days = now()->diffInDays($this->start_date, false);
+                
+                if ($days < 0) {
+                    return 0; // Event has started
+                }
+                
+                return $days;
+            }
+        );
+    }
+
+    // =====================================================
+    // METHODS
+    // =====================================================
+
+    /**
      * Check if the event is published.
      */
     public function isPublished(): bool
     {
         return $this->status === 'published';
+    }
+
+    /**
+     * Check if the event is draft.
+     */
+    public function isDraft(): bool
+    {
+        return $this->status === 'draft';
+    }
+
+    /**
+     * Check if the event is completed.
+     */
+    public function isCompleted(): bool
+    {
+        return $this->status === 'completed';
+    }
+
+    /**
+     * Check if the event is cancelled.
+     */
+    public function isCancelled(): bool
+    {
+        return $this->status === 'cancelled';
+    }
+
+    /**
+     * Check if the event is upcoming.
+     */
+    public function isUpcoming(): bool
+    {
+        return $this->start_date && $this->start_date >= now()->toDateString();
+    }
+
+    /**
+     * Check if the event is past.
+     */
+    public function isPast(): bool
+    {
+        return $this->end_date && $this->end_date < now()->toDateString();
+    }
+
+    /**
+     * Check if the event is active (published and upcoming).
+     */
+    public function isActive(): bool
+    {
+        return $this->isPublished() && $this->isUpcoming();
     }
 
     /**
@@ -110,7 +505,7 @@ class Event extends Model
      */
     public function isRegistrationOpen(): bool
     {
-        if (!$this->isPublished()) {
+        if (!$this->isPublished() || !$this->isUpcoming()) {
             return false;
         }
 
@@ -119,6 +514,22 @@ class Event extends Model
         }
 
         return !$this->isFull();
+    }
+
+    /**
+     * Check if user can register for this event.
+     */
+    public function canRegister(?User $user = null): bool
+    {
+        if (!$this->isRegistrationOpen()) {
+            return false;
+        }
+
+        if ($user && $user->isRegisteredFor($this)) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -134,30 +545,161 @@ class Event extends Model
     }
 
     /**
-     * Scope for published events.
+     * Get QR code data for the event.
      */
-    public function scopePublished($query)
+    public function getQRCodeData(): string
     {
-        return $query->where('status', 'published');
+        return json_encode([
+            'type' => 'event',
+            'event_id' => $this->id,
+            'slug' => $this->slug,
+            'title' => $this->title,
+            'date' => $this->start_date->toDateString(),
+            'venue' => $this->venue,
+        ]);
     }
 
     /**
-     * Scope for upcoming events.
+     * Get check-in statistics.
      */
-    public function scopeUpcoming($query)
+    public function getCheckInStats(): array
     {
-        return $query->where('start_date', '>=', now()->toDateString());
+        $totalRegistrations = $this->confirmedRegistrations()->count();
+        $checkedIn = $this->checkIns()->count();
+        $notCheckedIn = $totalRegistrations - $checkedIn;
+        $checkInRate = $totalRegistrations > 0 ? round(($checkedIn / $totalRegistrations) * 100, 1) : 0;
+
+        return [
+            'total_registrations' => $totalRegistrations,
+            'checked_in' => $checkedIn,
+            'not_checked_in' => $notCheckedIn,
+            'check_in_rate' => $checkInRate,
+        ];
     }
 
     /**
-     * Scope for events with open registration.
+     * Get registration statistics.
      */
-    public function scopeOpenForRegistration($query)
+    public function getRegistrationStats(): array
     {
-        return $query->published()
-            ->where(function ($q) {
-                $q->whereNull('registration_deadline')
-                  ->orWhere('registration_deadline', '>', now());
-            });
+        return [
+            'total' => $this->registrations()->count(),
+            'confirmed' => $this->confirmedRegistrations()->count(),
+            'pending' => $this->registrations()->where('status', 'pending')->count(),
+            'cancelled' => $this->cancelledRegistrations()->count(),
+        ];
+    }
+
+    /**
+     * Publish the event.
+     */
+    public function publish(): bool
+    {
+        $this->status = 'published';
+        return $this->save();
+    }
+
+    /**
+     * Mark event as completed.
+     */
+    public function complete(): bool
+    {
+        $this->status = 'completed';
+        return $this->save();
+    }
+
+    /**
+     * Cancel the event.
+     */
+    public function cancel(): bool
+    {
+        $this->status = 'cancelled';
+        return $this->save();
+    }
+
+    /**
+     * Generate unique slug.
+     */
+    public function generateUniqueSlug(?string $title = null): string
+    {
+        $title = $title ?: $this->title;
+        $slug = Str::slug($title);
+        $originalSlug = $slug;
+        $counter = 1;
+
+        while (static::where('slug', $slug)->where('id', '!=', $this->id)->exists()) {
+            $slug = $originalSlug . '-' . $counter;
+            $counter++;
+        }
+
+        return $slug;
+    }
+
+    /**
+     * Check if event has started.
+     */
+    public function hasStarted(): bool
+    {
+        if (!$this->start_date || !$this->start_time) {
+            return false;
+        }
+
+        $startDateTime = Carbon::createFromFormat('Y-m-d H:i:s', 
+            $this->start_date->format('Y-m-d') . ' ' . $this->start_time->format('H:i:s')
+        );
+
+        return now()->gte($startDateTime);
+    }
+
+    /**
+     * Check if event has ended.
+     */
+    public function hasEnded(): bool
+    {
+        if (!$this->end_date || !$this->end_time) {
+            return false;
+        }
+
+        $endDateTime = Carbon::createFromFormat('Y-m-d H:i:s', 
+            $this->end_date->format('Y-m-d') . ' ' . $this->end_time->format('H:i:s')
+        );
+
+        return now()->gt($endDateTime);
+    }
+
+    /**
+     * Check if event is currently in progress.
+     */
+    public function isInProgress(): bool
+    {
+        return $this->hasStarted() && !$this->hasEnded();
+    }
+
+    /**
+     * Get status display name.
+     */
+    public function getStatusDisplayName(): string
+    {
+        return match($this->status) {
+            'draft' => 'Draft',
+            'published' => 'Published',
+            'completed' => 'Completed',
+            'cancelled' => 'Cancelled',
+            default => 'Unknown'
+        };
+    }
+
+    /**
+     * Get status color for UI.
+     */
+    public function getStatusColor(): string
+    {
+        return match($this->status) {
+            'draft' => 'gray',
+            'published' => 'green',
+            'completed' => 'blue',
+            'cancelled' => 'red',
+            default => 'gray'
+        };
     }
 }

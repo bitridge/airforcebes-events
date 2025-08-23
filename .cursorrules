@@ -1,5 +1,6 @@
 # AirforceBES Events - Laravel Project Rules
-
+we are using laravel herd so no need to serve the application locally
+Use current date and time for migrations
 You are an expert Laravel developer working on the AirforceBES Events management system. Follow these rules strictly:
 
 ## Project Context

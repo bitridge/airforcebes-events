@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class User extends Authenticatable
 {
@@ -52,6 +53,10 @@ class User extends Authenticatable
         ];
     }
 
+    // =====================================================
+    // RELATIONSHIPS
+    // =====================================================
+
     /**
      * Get the registrations for the user.
      */
@@ -61,20 +66,48 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user is an admin.
+     * Get the events created by this user.
      */
-    public function isAdmin(): bool
+    public function createdEvents()
     {
-        return $this->role === 'admin';
+        return $this->hasMany(Event::class, 'created_by');
     }
 
     /**
-     * Check if user is an attendee.
+     * Get the check-ins for this user through registrations.
      */
-    public function isAttendee(): bool
+    public function checkIns()
     {
-        return $this->role === 'attendee' || $this->role === null;
+        return $this->hasManyThrough(CheckIn::class, Registration::class);
     }
+
+    /**
+     * Get the user who created this user.
+     */
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Get the users created by this user.
+     */
+    public function createdUsers()
+    {
+        return $this->hasMany(User::class, 'created_by');
+    }
+
+    /**
+     * Get the check-ins performed by this user (as admin).
+     */
+    public function performedCheckIns()
+    {
+        return $this->hasMany(CheckIn::class, 'checked_in_by');
+    }
+
+    // =====================================================
+    // SCOPES
+    // =====================================================
 
     /**
      * Scope to get only admin users.
@@ -101,26 +134,232 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the user who created this user.
+     * Scope to get inactive users.
      */
-    public function creator()
+    public function scopeInactive($query)
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $query->where('is_active', false);
     }
 
     /**
-     * Get the users created by this user.
+     * Scope to get users with registrations.
      */
-    public function createdUsers()
+    public function scopeWithRegistrations($query)
     {
-        return $this->hasMany(User::class, 'created_by');
+        return $query->whereHas('registrations');
     }
 
     /**
-     * Get the events created by this user.
+     * Scope to get users by organization.
      */
-    public function createdEvents()
+    public function scopeByOrganization($query, $organization)
     {
-        return $this->hasMany(\App\Models\Event::class, 'created_by');
+        return $query->where('organization', $organization);
+    }
+
+    // =====================================================
+    // ACCESSORS & MUTATORS
+    // =====================================================
+
+    /**
+     * Get the user's full name.
+     */
+    protected function fullName(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->name,
+        );
+    }
+
+    /**
+     * Get the user's formatted phone number.
+     */
+    protected function formattedPhone(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                if (!$this->phone) {
+                    return null;
+                }
+                
+                // Remove all non-numeric characters
+                $phone = preg_replace('/[^0-9]/', '', $this->phone);
+                
+                // Format US phone numbers
+                if (strlen($phone) === 10) {
+                    return sprintf('(%s) %s-%s', 
+                        substr($phone, 0, 3),
+                        substr($phone, 3, 3),
+                        substr($phone, 6, 4)
+                    );
+                }
+                
+                // For international or other formats, return as-is
+                return $this->phone;
+            }
+        );
+    }
+
+    /**
+     * Set the phone attribute with basic formatting.
+     */
+    protected function phone(): Attribute
+    {
+        return Attribute::make(
+            set: function ($value) {
+                if (!$value) {
+                    return null;
+                }
+                
+                // Store phone with minimal formatting
+                return preg_replace('/[^0-9+\-\s\(\)]/', '', $value);
+            }
+        );
+    }
+
+    /**
+     * Get the user's initials.
+     */
+    protected function initials(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                $nameParts = explode(' ', trim($this->name));
+                $initials = '';
+                
+                foreach ($nameParts as $part) {
+                    if (!empty($part)) {
+                        $initials .= strtoupper(substr($part, 0, 1));
+                    }
+                }
+                
+                return $initials ?: strtoupper(substr($this->name, 0, 2));
+            }
+        );
+    }
+
+    // =====================================================
+    // METHODS
+    // =====================================================
+
+    /**
+     * Check if user is an admin.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    /**
+     * Check if user is an attendee.
+     */
+    public function isAttendee(): bool
+    {
+        return $this->role === 'attendee' || $this->role === null;
+    }
+
+    /**
+     * Check if user is active.
+     */
+    public function isActive(): bool
+    {
+        return $this->is_active;
+    }
+
+    /**
+     * Get the count of events user has registered for.
+     */
+    public function getRegistrationCount(): int
+    {
+        return $this->registrations()->confirmed()->count();
+    }
+
+    /**
+     * Get the count of events user has checked into.
+     */
+    public function getCheckInCount(): int
+    {
+        return $this->checkIns()->count();
+    }
+
+    /**
+     * Check if user is registered for a specific event.
+     */
+    public function isRegisteredFor(Event $event): bool
+    {
+        return $this->registrations()
+            ->where('event_id', $event->id)
+            ->where('status', 'confirmed')
+            ->exists();
+    }
+
+    /**
+     * Check if user is checked in for a specific event.
+     */
+    public function isCheckedInFor(Event $event): bool
+    {
+        return $this->registrations()
+            ->where('event_id', $event->id)
+            ->whereHas('checkIn')
+            ->exists();
+    }
+
+    /**
+     * Get user's upcoming registrations.
+     */
+    public function getUpcomingRegistrations()
+    {
+        return $this->registrations()
+            ->with('event')
+            ->whereHas('event', function ($query) {
+                $query->where('start_date', '>=', now()->toDateString());
+            })
+            ->where('status', 'confirmed')
+            ->orderBy('created_at', 'desc')
+            ->get();
+    }
+
+    /**
+     * Get user's past registrations.
+     */
+    public function getPastRegistrations()
+    {
+        return $this->registrations()
+            ->with('event')
+            ->whereHas('event', function ($query) {
+                $query->where('start_date', '<', now()->toDateString());
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+    }
+
+    /**
+     * Activate the user account.
+     */
+    public function activate(): bool
+    {
+        $this->is_active = true;
+        return $this->save();
+    }
+
+    /**
+     * Deactivate the user account.
+     */
+    public function deactivate(): bool
+    {
+        $this->is_active = false;
+        return $this->save();
+    }
+
+    /**
+     * Get user's role display name.
+     */
+    public function getRoleDisplayName(): string
+    {
+        return match($this->role) {
+            'admin' => 'Administrator',
+            'attendee' => 'Attendee',
+            default => 'User'
+        };
     }
 }

@@ -15,15 +15,33 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans text-gray-900 antialiased">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100">
-            <div>
-                <a href="/">
-                    <x-application-logo class="w-20 h-20 fill-current text-gray-500" />
+        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gradient-to-br from-indigo-50 to-blue-100">
+            <!-- Logo -->
+            <div class="mb-6">
+                <a href="/" class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <span class="text-2xl font-bold text-gray-900">AirforceBES Events</span>
                 </a>
             </div>
 
-            <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white shadow-md overflow-hidden sm:rounded-lg">
-                {{ $slot }}
+            <!-- Main Content -->
+            <div class="w-full max-w-md sm:max-w-lg lg:max-w-xl mx-auto px-6">
+                <div class="bg-white shadow-xl rounded-2xl overflow-hidden">
+                    <div class="px-6 py-8 sm:px-8 sm:py-10">
+                        {{ $slot }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="mt-8 text-center">
+                <p class="text-sm text-gray-600">
+                    &copy; {{ date('Y') }} AirforceBES Events. All rights reserved.
+                </p>
             </div>
         </div>
     </body>

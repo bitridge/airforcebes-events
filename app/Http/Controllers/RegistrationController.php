@@ -6,6 +6,7 @@ use App\Http\Requests\StoreRegistrationRequest;
 use App\Models\Event;
 use App\Models\Registration;
 use App\Mail\RegistrationConfirmation;
+use App\Services\QRCodeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -13,7 +14,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class RegistrationController extends Controller
 {
@@ -48,12 +48,9 @@ class RegistrationController extends Controller
                 'status' => 'confirmed',
             ]);
 
-            // Generate QR code data and store
-            $qrData = $this->generateQrCodeData($registration);
-            $registration->update(['qr_code_data' => $qrData]);
-
-            // Generate and store QR code image
-            $this->generateAndStoreQrCode($registration);
+            // Generate QR code using service
+            $qrCodeService = new QRCodeService();
+            $qrResult = $qrCodeService->generateQRCode($registration);
 
             DB::commit();
 
@@ -156,11 +153,12 @@ class RegistrationController extends Controller
             abort(404, 'QR code not available for this registration.');
         }
 
+        $qrCodeService = new QRCodeService();
         $filename = "qr_codes/registration_{$registration->id}.svg";
 
         if (!Storage::disk('public')->exists($filename)) {
             // Regenerate QR code if it doesn't exist
-            $this->generateAndStoreQrCode($registration);
+            $qrCodeService->generateQRCode($registration);
         }
 
         $qrCodeContent = Storage::disk('public')->get($filename);
@@ -196,6 +194,52 @@ class RegistrationController extends Controller
     }
 
     /**
+     * Display QR code for a registration.
+     */
+    public function showQrCode(Registration $registration)
+    {
+        // Check if user owns this registration
+        if ($registration->user_id !== auth()->id()) {
+            abort(403, 'You can only view your own QR codes.');
+        }
+
+        // Check if registration is confirmed
+        if (!$registration->isConfirmed()) {
+            abort(404, 'QR code not available for this registration.');
+        }
+
+        $qrCodeService = new QRCodeService();
+        $qrCode = $qrCodeService->getQRCodeForDisplay($registration);
+
+        return view('registrations.qr-code', [
+            'registration' => $registration,
+            'qrCode' => $qrCode,
+            'downloadUrl' => $qrCodeService->getQRCodeDownloadUrl($registration),
+        ]);
+    }
+
+    /**
+     * Print QR code for a registration.
+     */
+    public function printQrCode(Registration $registration)
+    {
+        // Check if user owns this registration
+        if ($registration->user_id !== auth()->id()) {
+            abort(403, 'You can only print your own QR codes.');
+        }
+
+        // Check if registration is confirmed
+        if (!$registration->isConfirmed()) {
+            abort(404, 'QR code not available for this registration.');
+        }
+
+        $qrCodeService = new QRCodeService();
+        $printData = $qrCodeService->getQRCodeForPrint($registration);
+
+        return view('registrations.print-qr', $printData);
+    }
+
+    /**
      * Generate a unique registration code.
      */
     private function generateUniqueRegistrationCode(): string
@@ -205,48 +249,5 @@ class RegistrationController extends Controller
         } while (Registration::where('registration_code', $code)->exists());
 
         return $code;
-    }
-
-    /**
-     * Generate QR code data for a registration.
-     */
-    private function generateQrCodeData(Registration $registration): string
-    {
-        return json_encode([
-            'type' => 'event_registration',
-            'registration_id' => $registration->id,
-            'registration_code' => $registration->registration_code,
-            'event_id' => $registration->event_id,
-            'user_id' => $registration->user_id,
-            'event_title' => $registration->event->title,
-            'user_name' => $registration->user->name,
-            'registration_date' => $registration->registration_date->toISOString(),
-            'check_in_url' => route('checkin.index', ['code' => $registration->registration_code]),
-        ]);
-    }
-
-    /**
-     * Generate and store QR code image.
-     */
-    private function generateAndStoreQrCode(Registration $registration): void
-    {
-        $qrCodeSvg = QrCode::size(300)
-            ->format('svg')
-            ->generate($registration->qr_code_data);
-
-        $filename = "qr_codes/registration_{$registration->id}.svg";
-        Storage::disk('public')->put($filename, $qrCodeSvg);
-    }
-
-    /**
-     * Delete QR code file.
-     */
-    private function deleteQrCodeFile(Registration $registration): void
-    {
-        $filename = "qr_codes/registration_{$registration->id}.svg";
-        
-        if (Storage::disk('public')->exists($filename)) {
-            Storage::disk('public')->delete($filename);
-        }
     }
 }

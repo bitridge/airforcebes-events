@@ -17,6 +17,17 @@ Route::get('/dashboard', function () {
 Route::get('/events', [EventController::class, 'index'])->name('events.index');
 Route::get('/events/{event:slug}', [EventController::class, 'show'])->name('events.show');
 
+// QR Code verification (public endpoint)
+Route::get('/qr/verify/{hash}', function ($hash) {
+    $registration = \App\Models\Registration::where('qr_security_hash', $hash)->first();
+    
+    if (!$registration) {
+        abort(404, 'QR code not found');
+    }
+    
+    return view('qr.verify', compact('registration'));
+})->name('qr.verify');
+
 // Authenticated user routes
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
@@ -29,6 +40,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/events/{event}/register', [RegistrationController::class, 'store'])->name('registrations.store');
     Route::get('/my-registrations', [RegistrationController::class, 'index'])->name('registrations.index');
     Route::get('/registrations/{registration}/qr-code', [RegistrationController::class, 'downloadQrCode'])->name('registrations.qr-code');
+    Route::get('/registrations/{registration}/qr-view', [RegistrationController::class, 'showQrCode'])->name('registrations.qr-view');
+    Route::get('/registrations/{registration}/qr-print', [RegistrationController::class, 'printQrCode'])->name('registrations.qr-print');
     Route::delete('/registrations/{registration}', [RegistrationController::class, 'destroy'])->name('registrations.destroy');
 
     // Check-in routes
@@ -45,7 +58,16 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('events', AdminEventController::class);
     Route::get('/registrations', [RegistrationController::class, 'adminIndex'])->name('registrations.index');
     Route::get('/events/{event}/registrations', [RegistrationController::class, 'eventRegistrations'])->name('events.registrations');
-    Route::get('/events/{event}/check-ins', [CheckInController::class, 'eventCheckIns'])->name('events.checkins');
+    
+    // Check-in routes
+    Route::get('/check-in', [CheckInController::class, 'index'])->name('check-in.index');
+    Route::get('/check-in/manual', [CheckInController::class, 'manual'])->name('check-in.manual');
+    Route::post('/check-in/scan', [CheckInController::class, 'scanQrCode'])->name('check-in.scan');
+    Route::post('/check-in/code', [CheckInController::class, 'checkInByCode'])->name('check-in.code');
+    Route::post('/check-in/bulk', [CheckInController::class, 'bulkCheckIn'])->name('check-in.bulk');
+    Route::get('/check-in/search', [CheckInController::class, 'search'])->name('check-in.search');
+    Route::get('/events/{event}/stats', [CheckInController::class, 'eventStats'])->name('events.stats');
+    Route::get('/events/{event}/export', [CheckInController::class, 'exportReport'])->name('events.export');
 });
 
 require __DIR__.'/auth.php';

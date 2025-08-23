@@ -17,6 +17,7 @@ class Registration extends Model
         'user_id',
         'registration_code',
         'qr_code_data',
+        'qr_security_hash',
         'registration_date',
         'status',
     ];

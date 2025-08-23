@@ -1,0 +1,291 @@
+# AirforceBES Events - Laravel Project Rules
+
+You are an expert Laravel developer working on the AirforceBES Events management system. Follow these rules strictly:
+
+## Project Context
+- Project: Event management system for AirforceBES
+- Framework: Laravel 10 with Blade templating
+- Frontend: Tailwind CSS, Alpine.js for interactions
+- Database: MySQL
+- Authentication: Laravel Breeze (extended for roles)
+- Key Features: Event registration, QR code check-in, admin dashboard
+
+## Code Style & Standards
+
+### PHP/Laravel Standards
+- Follow PSR-12 coding standards
+- Use Laravel's built-in features and conventions
+- Prefer Eloquent over raw SQL queries
+- Use form requests for validation
+- Implement proper exception handling
+- Use Laravel's logging system for debugging
+- Follow RESTful routing conventions
+- Use resource controllers where appropriate
+
+### Database Conventions
+- Use snake_case for table and column names
+- Always use migrations for schema changes
+- Include proper foreign key constraints
+- Add indexes for frequently queried columns
+- Use soft deletes where data retention is important
+- Include timestamps on all tables
+
+### Blade Templates
+- Use component-based architecture
+- Keep logic minimal in templates
+- Use proper CSRF protection
+- Implement proper form validation display
+- Use Laravel's built-in pagination
+- Follow consistent naming: kebab-case for components
+
+### Security Requirements
+- Always validate and sanitize input
+- Use Laravel's built-in CSRF protection
+- Implement proper authorization checks
+- Use prepared statements (Eloquent handles this)
+- Validate file uploads strictly
+- Implement rate limiting for public endpoints
+- Use Laravel's built-in password hashing
+
+## Project-Specific Rules
+
+### Authentication & Authorization
+- Users have roles: 'admin', 'attendee'
+- Use middleware for role-based access control
+- Admins can manage all events and users
+- Attendees can only register for events and view their own data
+- Implement proper session management
+- Use Laravel Breeze for basic auth, extend as needed
+
+### Event Management
+- Events must have unique slugs
+- Use proper date/time handling with Carbon
+- Implement capacity management (max_capacity vs registrations)
+- Events have status: draft, published, completed, cancelled
+- Use proper image upload and storage
+- Implement proper SEO with meta tags
+
+### Registration System
+- Generate unique registration codes
+- Create QR codes for each registration
+- Prevent duplicate registrations per user/event
+- Implement proper email notifications
+- Handle registration deadlines
+- Manage waiting lists for full events
+
+### Check-in System
+- Support multiple check-in methods: QR code, manual, ID search
+- Record check-in timestamp and method
+- Prevent duplicate check-ins
+- Implement real-time updates where possible
+- Use proper validation for QR codes
+- Create mobile-friendly interfaces
+
+## File Structure & Organization
+
+### Controllers
+- Use resource controllers: EventController, RegistrationController
+- Separate admin controllers: Admin\EventController
+- Keep controllers thin, move logic to services
+- Use form requests for validation
+- Return proper HTTP status codes
+
+### Models
+- Define all relationships explicitly
+- Use accessors/mutators for data formatting
+- Implement proper scopes for common queries
+- Add model events where needed (creating, updating)
+- Use proper casting for data types
+
+### Services
+- Create service classes for complex business logic
+- EventService, RegistrationService, CheckInService
+- Keep services focused and testable
+- Use dependency injection
+
+### Middleware
+- AdminMiddleware: Check admin role
+- EventManagerMiddleware: Check event management permissions
+- Apply middleware at route level, not controller
+
+## Frontend Guidelines
+
+### Tailwind CSS
+- Use utility-first approach
+- Create component classes for repeated patterns
+- Use responsive design principles
+- Implement dark mode support if requested
+- Use proper color schemes and typography
+
+### Alpine.js Integration
+- Use for simple interactions and form handling
+- Keep JavaScript minimal and progressive
+- Use for real-time updates and notifications
+- Implement proper error handling
+
+### Form Handling
+- Use Laravel's form helpers
+- Implement proper validation display
+- Use CSRF tokens on all forms
+- Provide clear user feedback
+- Make forms mobile-friendly
+
+## Performance & Optimization
+
+### Database
+- Use eager loading to prevent N+1 queries
+- Implement proper indexing
+- Use database transactions for multi-step operations
+- Cache frequently accessed data
+- Use pagination for large datasets
+
+### Caching
+- Cache event listings on public pages
+- Cache dashboard statistics
+- Use Redis for session and cache storage in production
+- Implement cache invalidation strategies
+
+### File Handling
+- Optimize uploaded images
+- Use proper file storage (local for dev, S3 for production)
+- Implement proper file validation
+- Use lazy loading for images
+
+## Testing Requirements
+
+### Feature Tests
+- Test complete user flows (registration, check-in)
+- Test admin functionality
+- Test authentication and authorization
+- Test form submissions and validations
+
+### Unit Tests
+- Test model relationships and methods
+- Test service class methods
+- Test custom validation rules
+- Test helper functions
+
+## Error Handling & Logging
+
+### Error Pages
+- Custom 404, 403, 500 error pages
+- Maintain branding consistency
+- Provide helpful information to users
+
+### Logging
+- Log important events (registrations, check-ins)
+- Log security events (failed logins, unauthorized access)
+- Use appropriate log levels
+- Include context in log messages
+
+## Code Comments & Documentation
+
+### PHP Code
+- Document complex business logic
+- Use PHPDoc for methods and classes
+- Comment non-obvious code sections
+- Include examples in docblocks where helpful
+
+### API Documentation
+- Document all API endpoints if created
+- Include request/response examples
+- Document authentication requirements
+- Keep documentation updated
+
+## Package Management
+
+### Composer Packages
+- Keep packages up to date
+- Use specific version constraints
+- Required packages:
+  - laravel/breeze (authentication)
+  - simplesoftwareio/simple-qrcode (QR codes)
+  - maatwebsite/excel (reports)
+  - intervention/image (image processing)
+
+### NPM Packages
+- Use for frontend build tools only
+- Keep minimal JavaScript dependencies
+- Use Vite for asset compilation
+
+## Environment & Deployment
+
+### Environment Variables
+- Use .env for all configuration
+- Never commit sensitive data
+- Use different settings for dev/staging/production
+- Document required environment variables
+
+### Production Considerations
+- Use proper caching in production
+- Implement proper backup strategies
+- Use queue workers for heavy tasks
+- Monitor application performance
+
+## Naming Conventions
+
+### Routes
+- Use resource routes where possible
+- Admin routes: /admin/events, /admin/registrations
+- Public routes: /, /events, /events/{slug}
+- API routes: /api/v1/ (if implemented)
+
+### Database Tables
+- events, users, registrations, check_ins
+- Use singular model names, plural table names
+- Pivot tables: event_user, registration_check_in
+
+### Variables & Methods
+- Use descriptive names: $registrationCode, checkInUser()
+- Boolean variables: $isActive, $canRegister
+- Collections: $events, $registrations
+- Single items: $event, $registration
+
+## Response Format Standards
+
+### JSON Responses (API)
+- Always include status, message, data
+- Use consistent error format
+- Include proper HTTP status codes
+- Provide meaningful error messages
+
+### View Responses
+- Pass data consistently to views
+- Use compact() or explicit arrays
+- Include necessary data for layouts
+- Handle empty states gracefully
+
+## Mobile & Accessibility
+
+### Mobile First
+- Design mobile-first responsive layouts
+- Test on various screen sizes
+- Use touch-friendly interface elements
+- Optimize for mobile check-in process
+
+### Accessibility
+- Use semantic HTML
+- Include proper ARIA labels
+- Ensure keyboard navigation works
+- Maintain good color contrast
+
+## When suggesting code changes or new features:
+1. Always consider security implications
+2. Ensure mobile compatibility
+3. Follow Laravel best practices
+4. Include proper error handling
+5. Consider performance impact
+6. Add appropriate tests
+7. Update documentation if needed
+8. Use consistent naming conventions
+
+## Priority Features Order:
+1. Core authentication and user management
+2. Event creation and management
+3. Registration system with QR codes
+4. Check-in system (multiple methods)
+5. Admin dashboard and analytics
+6. Reporting and exports
+7. Advanced features (waiting lists, notifications)
+
+Remember: This is a production application that will be used for real events. Code quality, security, and user experience are paramount.

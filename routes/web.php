@@ -6,6 +6,7 @@ use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\CheckInController;
 use App\Http\Controllers\Admin\EventController as AdminEventController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\AttendeeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('welcome');
@@ -59,8 +60,27 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
            Route::post('/events/{event}/export-attendees', [AdminEventController::class, 'exportAttendees'])->name('events.export-attendees');
            Route::post('/events/{event}/export-checkins', [AdminEventController::class, 'exportCheckInReport'])->name('events.export-checkins');
            Route::post('/events/bulk-action', [AdminEventController::class, 'bulkAction'])->name('events.bulk-action');
-    Route::get('/registrations', [RegistrationController::class, 'adminIndex'])->name('registrations.index');
-    Route::get('/events/{event}/registrations', [RegistrationController::class, 'eventRegistrations'])->name('events.registrations');
+               Route::get('/registrations', [RegistrationController::class, 'adminIndex'])->name('registrations.index');
+           Route::get('/events/{event}/registrations', [RegistrationController::class, 'eventRegistrations'])->name('events.registrations');
+           
+           // Registration management routes
+           Route::get('/registrations/{registration}', [RegistrationController::class, 'show'])->name('registrations.show');
+           Route::get('/registrations/{registration}/edit', [RegistrationController::class, 'edit'])->name('registrations.edit');
+           Route::put('/registrations/{registration}', [RegistrationController::class, 'update'])->name('registrations.update');
+           Route::delete('/registrations/{registration}', [RegistrationController::class, 'destroy'])->name('registrations.destroy');
+           Route::post('/registrations/{registration}/resend-email', [RegistrationController::class, 'resendEmail'])->name('registrations.resend-email');
+           Route::post('/registrations/bulk-action', [RegistrationController::class, 'bulkAction'])->name('registrations.bulk-action');
+           Route::post('/registrations/export-csv', [RegistrationController::class, 'exportCsv'])->name('registrations.export-csv');
+           Route::post('/registrations/export-pdf', [RegistrationController::class, 'exportPdf'])->name('registrations.export-pdf');
+           
+           // Attendee management routes
+           Route::get('/attendees', [AttendeeController::class, 'index'])->name('attendees.index');
+           Route::get('/attendees/{attendee}', [AttendeeController::class, 'show'])->name('attendees.show');
+           Route::get('/attendees/{attendee}/edit', [AttendeeController::class, 'edit'])->name('attendees.edit');
+           Route::put('/attendees/{attendee}', [AttendeeController::class, 'update'])->name('attendees.update');
+           Route::post('/attendees/{attendee}/communication', [AttendeeController::class, 'sendCommunication'])->name('attendees.communication');
+           Route::post('/attendees/bulk-communication', [AttendeeController::class, 'bulkCommunication'])->name('attendees.bulk-communication');
+           Route::post('/attendees/export-csv', [AttendeeController::class, 'exportCsv'])->name('attendees.export-csv');
     
     // Check-in routes
     Route::get('/check-in', [CheckInController::class, 'index'])->name('check-in.index');

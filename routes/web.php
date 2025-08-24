@@ -82,19 +82,21 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
             Route::get('/registrations/{registration}/print-card', [AdminRegistrationController::class, 'printRegistrationCard'])->name('registrations.print-card');
             
             // Settings management routes
-            Route::get('/settings', [App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings.index');
-            Route::post('/settings/{group}', [App\Http\Controllers\Admin\SettingsController::class, 'updateGroup'])->name('settings.update-group');
-            Route::put('/settings/{key}', [App\Http\Controllers\Admin\SettingsController::class, 'updateSetting'])->name('settings.update');
-            Route::post('/settings/test-smtp', [App\Http\Controllers\Admin\SettingsController::class, 'testSmtp'])->name('settings.test-smtp');
-            Route::post('/settings/export', [App\Http\Controllers\Admin\SettingsController::class, 'export'])->name('settings.export');
-            Route::post('/settings/import', [App\Http\Controllers\Admin\SettingsController::class, 'import'])->name('settings.import');
-            Route::post('/settings/backup', [App\Http\Controllers\Admin\SettingsController::class, 'backup'])->name('settings.backup');
-            Route::post('/settings/restore', [App\Http\Controllers\Admin\SettingsController::class, 'restore'])->name('settings.restore');
-            Route::post('/settings/reset-defaults', [App\Http\Controllers\Admin\SettingsController::class, 'resetToDefaults'])->name('settings.reset-defaults');
-            Route::post('/settings/clear-cache', [App\Http\Controllers\Admin\SettingsController::class, 'clearCache'])->name('settings.clear-cache');
-            Route::get('/settings/cache-stats', [App\Http\Controllers\Admin\SettingsController::class, 'getCacheStats'])->name('settings.cache-stats');
-            Route::get('/settings/backups', [App\Http\Controllers\Admin\SettingsController::class, 'getBackups'])->name('settings.backups');
-            Route::get('/settings/backup/{filename}/download', [App\Http\Controllers\Admin\SettingsController::class, 'downloadBackup'])->name('settings.download-backup');
+            Route::middleware('admin')->group(function () {
+                Route::get('/settings', [App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings.index');
+                Route::post('/settings/{group}', [App\Http\Controllers\Admin\SettingsController::class, 'updateGroup'])->name('settings.update-group');
+                Route::put('/settings/{key}', [App\Http\Controllers\Admin\SettingsController::class, 'updateSetting'])->name('settings.update');
+                Route::post('/settings/test-smtp', [App\Http\Controllers\Admin\SettingsController::class, 'testSmtp'])->name('settings.test-smtp');
+                Route::post('/settings/export', [App\Http\Controllers\Admin\SettingsController::class, 'export'])->name('settings.export');
+                Route::post('/settings/import', [App\Http\Controllers\Admin\SettingsController::class, 'import'])->name('settings.import');
+                Route::post('/settings/backup', [App\Http\Controllers\Admin\SettingsController::class, 'backup'])->name('settings.backup');
+                Route::post('/settings/restore', [App\Http\Controllers\Admin\SettingsController::class, 'restore'])->name('settings.restore');
+                Route::post('/settings/reset-defaults', [App\Http\Controllers\Admin\SettingsController::class, 'resetToDefaults'])->name('settings.reset-defaults');
+                Route::post('/settings/clear-cache', [App\Http\Controllers\Admin\SettingsController::class, 'clearCache'])->name('settings.clear-cache');
+                Route::get('/settings/cache-stats', [App\Http\Controllers\Admin\SettingsController::class, 'getCacheStats'])->name('settings.cache-stats');
+                Route::get('/settings/backups', [App\Http\Controllers\Admin\SettingsController::class, 'getBackups'])->name('settings.backups');
+                Route::get('/settings/backup/{filename}/download', [App\Http\Controllers\Admin\SettingsController::class, 'downloadBackup'])->name('settings.download-backup');
+            });
            
            // Attendee management routes
            Route::get('/attendees', [AttendeeController::class, 'index'])->name('attendees.index');

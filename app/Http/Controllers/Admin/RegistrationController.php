@@ -17,10 +17,11 @@ use Illuminate\Support\Facades\Log;
 
 class RegistrationController extends Controller
 {
-    public function index(Request $request): View
+    public function adminIndex(Request $request): View
     {
-        $query = Registration::with(['event', 'user', 'checkIn'])
-            ->withCount('checkIn');
+        try {
+            $query = Registration::with(['event', 'user', 'checkIn'])
+                ->withCount('checkIn');
 
         // Search functionality
         if ($request->filled('search')) {
@@ -70,9 +71,49 @@ class RegistrationController extends Controller
         $query->orderBy($sortBy, $sortDir);
 
         $registrations = $query->paginate(20)->withQueryString();
-        $events = Event::published()->orderBy('title')->get();
+        
+        try {
+            $events = Event::published()->orderBy('title')->get();
+            
+            // Debug logging
+            Log::info('Admin registrations page loaded', [
+                'events_count' => $events->count(),
+                'registrations_count' => $registrations->count(),
+                'method' => 'adminIndex'
+            ]);
+        } catch (\Exception $e) {
+            // Fallback to all events if published scope fails
+            $events = Event::orderBy('title')->get();
+            Log::warning('Failed to load published events, falling back to all events', [
+                'error' => $e->getMessage(),
+                'method' => 'adminIndex'
+            ]);
+        }
+
+        // Ensure we have the required variables
+        if (!isset($events) || $events->isEmpty()) {
+            Log::warning('No events found for admin registrations page', [
+                'method' => 'adminIndex',
+                'fallback' => 'Using empty collection'
+            ]);
+            $events = collect();
+        }
 
         return view('admin.registrations.index', compact('registrations', 'events'));
+        } catch (\Exception $e) {
+            Log::error('Error in admin registrations index', [
+                'error' => $e->getMessage(),
+                'method' => 'adminIndex',
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Return a view with empty data and error message
+            return view('admin.registrations.index', [
+                'registrations' => collect(),
+                'events' => collect(),
+                'error' => 'An error occurred while loading the registrations. Please try again.'
+            ]);
+        }
     }
 
     public function show(Registration $registration): View

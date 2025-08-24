@@ -6,6 +6,12 @@
             <!-- Header -->
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-2xl font-semibold text-gray-900">Manage Registrations</h1>
+                
+                @if(isset($error))
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                        {{ $error }}
+                    </div>
+                @endif
                 <div class="flex space-x-3">
                     <form method="POST" action="{{ route('admin.registrations.export-csv') }}" class="inline">
                         @csrf
@@ -34,11 +40,15 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Event</label>
                         <select name="event_id" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500">
                             <option value="all">All Events</option>
-                            @foreach($events as $event)
-                                <option value="{{ $event->id }}" {{ request('event_id') == $event->id ? 'selected' : '' }}>
-                                    {{ $event->title }}
-                                </option>
-                            @endforeach
+                            @if(isset($events) && $events->count() > 0)
+                                @foreach($events as $event)
+                                    <option value="{{ $event->id }}" {{ request('event_id') == $event->id ? 'selected' : '' }}>
+                                        {{ $event->title }}
+                                    </option>
+                                @endforeach
+                            @else
+                                <option value="" disabled>No events available</option>
+                            @endif
                         </select>
                     </div>
                     
@@ -120,7 +130,8 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            @forelse($registrations as $registration)
+                            @if(isset($registrations) && $registrations->count() > 0)
+                                @foreach($registrations as $registration)
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <input type="checkbox" name="registration_ids[]" value="{{ $registration->id }}" 
@@ -187,19 +198,20 @@
                                         </div>
                                     </td>
                                 </tr>
-                            @empty
+                                @endforeach
+                            @else
                                 <tr>
                                     <td colspan="8" class="px-6 py-4 text-center text-gray-500">
                                         No registrations found matching your criteria.
                                     </td>
                                 </tr>
-                            @endforelse
+                            @endif
                         </tbody>
                     </table>
                 </div>
                 
                 <!-- Pagination -->
-                @if($registrations->hasPages())
+                @if(isset($registrations) && $registrations->hasPages())
                     <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
                         {{ $registrations->links() }}
                     </div>

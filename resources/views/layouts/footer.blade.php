@@ -4,18 +4,22 @@
             <!-- Brand Section -->
             <div class="md:col-span-1">
                 <div class="flex items-center space-x-3 mb-4">
-                    <div class="w-8 h-8 bg-red-600 rounded flex items-center justify-center">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
-                    </div>
+                    @if(app_logo())
+                        <img src="{{ asset('storage/' . app_logo()) }}" alt="{{ app_name() }}" class="w-8 h-8 rounded">
+                    @else
+                        <div class="w-8 h-8 rounded flex items-center justify-center" style="background-color: {{ primary_color() }}">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                    @endif
                     <div>
-                        <div class="font-semibold text-white">AF Event Management</div>
-                        <div class="text-xs">Life Cycle Management Center</div>
+                        <div class="font-semibold text-white">{{ app_name() }}</div>
+                        <div class="text-xs">{{ app_description() }}</div>
                     </div>
                 </div>
                 <p class="text-sm text-slate-400">
-                    Connecting Air Force professionals through meaningful events and networking opportunities.
+                    {{ app_description() }}
                 </p>
             </div>
 
@@ -71,7 +75,7 @@
         <!-- Bottom Section -->
         <div class="border-t border-slate-700 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
             <p class="text-sm text-slate-400">
-                &copy; {{ date('Y') }} Air Force Life Cycle Management Center. All rights reserved.
+                {!! app_setting('appearance.footer_text', '&copy; ' . date('Y') . ' Air Force Life Cycle Management Center. All rights reserved.') !!}
             </p>
             <div class="flex space-x-6 mt-4 md:mt-0">
                 <a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">Privacy Policy</a>

@@ -46,7 +46,7 @@
                     <p class="text-sm text-gray-600 mt-1">Basic application configuration</p>
                 </div>
                 
-                <form id="general-settings-form" class="space-y-6">
+                <form id="general-settings-form" class="space-y-6" enctype="multipart/form-data">
                     @csrf
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         @foreach($settings['general'] ?? [] as $setting)
@@ -97,6 +97,44 @@
                                             class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                                             @if($setting->is_required) required @endif
                                         >
+                                        @break
+                                    
+                                    @case('file')
+                                        <div class="space-y-3">
+                                            @if($setting->display_value)
+                                                <div class="flex items-center space-x-3">
+                                                    @if(in_array(strtolower(pathinfo($setting->display_value, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png', 'gif', 'svg']))
+                                                        <img src="{{ asset('storage/' . $setting->display_value) }}" alt="Current {{ $setting->label }}" class="w-16 h-16 object-cover rounded border">
+                                                    @else
+                                                        <div class="w-16 h-16 bg-gray-100 rounded border flex items-center justify-center">
+                                                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                            </svg>
+                                                        </div>
+                                                    @endif
+                                                    <div class="text-sm text-gray-600">
+                                                        <p class="font-medium">Current File:</p>
+                                                        <p class="text-xs">{{ $setting->display_value }}</p>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                            <input 
+                                                type="file" 
+                                                name="settings[{{ $setting->key }}]" 
+                                                accept="{{ $setting->key === 'app.logo' ? 'image/*' : ($setting->key === 'app.favicon' ? 'image/x-icon,image/png' : '*') }}"
+                                                class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                                @if($setting->is_required) required @endif
+                                            >
+                                            <p class="text-xs text-gray-500">
+                                                @if($setting->key === 'app.logo')
+                                                    Recommended: PNG, JPG, or SVG. Max size: 2MB.
+                                                @elseif($setting->key === 'app.favicon')
+                                                    Recommended: ICO or PNG. Max size: 1MB.
+                                                @else
+                                                    Max file size: 5MB.
+                                                @endif
+                                            </p>
+                                        </div>
                                         @break
                                 @endswitch
                             </div>

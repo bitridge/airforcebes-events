@@ -54,6 +54,24 @@ class SettingsController extends Controller
             ]);
 
             $settings = $request->input('settings');
+            
+            // Handle file uploads
+            foreach ($settings as $key => $value) {
+                if ($request->hasFile("settings.{$key}")) {
+                    $file = $request->file("settings.{$key}");
+                    
+                    // Validate file
+                    $maxSize = $key === 'app.logo' ? 2048 : ($key === 'app.favicon' ? 1024 : 5120); // KB
+                    $request->validate([
+                        "settings.{$key}" => "file|max:{$maxSize}|mimes:" . $this->getAllowedMimes($key),
+                    ]);
+                    
+                    // Store file and update setting value
+                    $path = $file->store('settings', 'public');
+                    $settings[$key] = $path;
+                }
+            }
+            
             $results = $this->settingsService->updateMultipleSettings($settings);
 
             Log::info('Settings updated for group', [
@@ -80,6 +98,18 @@ class SettingsController extends Controller
                 'message' => 'Failed to update settings: ' . $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Get allowed MIME types for a setting key
+     */
+    private function getAllowedMimes(string $key): string
+    {
+        return match ($key) {
+            'app.logo' => 'jpg,jpeg,png,gif,svg',
+            'app.favicon' => 'ico,png',
+            default => 'jpg,jpeg,png,gif,svg,pdf,doc,docx,txt',
+        };
     }
 
     /**

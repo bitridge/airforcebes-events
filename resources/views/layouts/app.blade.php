@@ -5,25 +5,30 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
+        <!-- Favicon -->
+        @if(app_logo())
+            <link rel="icon" type="image/x-icon" href="{{ asset('storage/' . app_logo()) }}">
+        @endif
+
         <!-- SEO Meta Tags -->
-        <title>{{ $title ?? config('app.name', 'AirforceBES Events') }}</title>
-        <meta name="description" content="{{ $description ?? 'Discover and register for upcoming Air Force events, workshops, and networking opportunities.' }}">
+        <title>{{ $title ?? app_name() }}</title>
+        <meta name="description" content="{{ $description ?? app_description() }}">
         <meta name="keywords" content="{{ $keywords ?? 'Air Force, events, workshops, networking, professional development' }}">
         
         <!-- Open Graph Meta Tags -->
-        <meta property="og:title" content="{{ $title ?? config('app.name') }}">
-        <meta property="og:description" content="{{ $description ?? 'Discover and register for upcoming Air Force events, workshops, and networking opportunities.' }}">
+        <meta property="og:title" content="{{ $title ?? app_name() }}">
+        <meta property="og:description" content="{{ $description ?? app_description() }}">
         <meta property="og:type" content="website">
         <meta property="og:url" content="{{ url()->current() }}">
-        <meta property="og:site_name" content="{{ config('app.name') }}">
+        <meta property="og:site_name" content="{{ app_name() }}">
         @isset($ogImage)
             <meta property="og:image" content="{{ $ogImage }}">
         @endisset
         
         <!-- Twitter Card Meta Tags -->
         <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:title" content="{{ $title ?? config('app.name') }}">
-        <meta name="twitter:description" content="{{ $description ?? 'Discover and register for upcoming Air Force events, workshops, and networking opportunities.' }}">
+        <meta name="twitter:title" content="{{ $title ?? app_name() }}">
+        <meta name="twitter:description" content="{{ $description ?? app_description() }}">
         
         <!-- Canonical URL -->
         <link rel="canonical" href="{{ url()->current() }}">
@@ -34,6 +39,13 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        
+        <!-- Custom CSS from settings -->
+        @if(app_setting('appearance.custom_css'))
+            <style>
+                {!! app_setting('appearance.custom_css') !!}
+            </style>
+        @endif
         
         <!-- Additional Head Content -->
         @stack('head')

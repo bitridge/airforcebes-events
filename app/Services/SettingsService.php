@@ -447,6 +447,19 @@ class SettingsService
     }
 
     /**
+     * Get a single setting value
+     */
+    public function getSettingValue(string $key, $default = null)
+    {
+        try {
+            $setting = Setting::where('key', $key)->first();
+            return $setting ? $setting->display_value : $default;
+        } catch (\Exception $e) {
+            return $default;
+        }
+    }
+
+    /**
      * Get settings cache statistics
      */
     public function getCacheStats(): array

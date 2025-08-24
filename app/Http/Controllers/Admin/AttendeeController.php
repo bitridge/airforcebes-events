@@ -61,35 +61,88 @@ class AttendeeController extends Controller
 
     public function show(User $attendee): View
     {
-        $attendee->load([
-            'registrations.event',
-            'registrations.checkIn.checkedInBy',
-            'registrations' => function ($query) {
-                $query->orderBy('registration_date', 'desc');
-            }
-        ]);
+        try {
+            $attendee->load([
+                'registrations.event',
+                'registrations.checkIn.checkedInBy',
+                'registrations' => function ($query) {
+                    $query->orderBy('registration_date', 'desc');
+                }
+            ]);
 
-        // Statistics
-        $stats = [
-            'total_registrations' => $attendee->registrations->count(),
-            'confirmed_registrations' => $attendee->registrations->where('status', 'confirmed')->count(),
-            'total_checkins' => $attendee->checkIns->count(),
-            'events_attended' => $attendee->registrations->where('status', 'confirmed')->unique('event_id')->count(),
-        ];
+            // Statistics
+            $stats = [
+                'total_registrations' => $attendee->registrations->count(),
+                'confirmed_registrations' => $attendee->registrations->where('status', 'confirmed')->count(),
+                'total_checkins' => $attendee->checkIns->count(),
+                'events_attended' => $attendee->registrations->where('status', 'confirmed')->unique('event_id')->count(),
+            ];
 
-        // Recent activity
-        $recentActivity = $attendee->registrations()
-            ->with(['event', 'checkIn'])
-            ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get();
+            // Recent activity
+            $recentActivity = $attendee->registrations()
+                ->with(['event', 'checkIn'])
+                ->orderBy('created_at', 'desc')
+                ->limit(10)
+                ->get();
 
-        return view('admin.attendees.show', compact('attendee', 'stats', 'recentActivity'));
+            // Debug logging
+            Log::info('Admin attendee show page loaded', [
+                'attendee_id' => $attendee->id,
+                'attendee_name' => $attendee->name,
+                'registrations_count' => $attendee->registrations->count(),
+                'checkins_count' => $attendee->checkIns->count(),
+                'method' => 'show'
+            ]);
+
+            return view('admin.attendees.show', compact('attendee', 'stats', 'recentActivity'));
+
+        } catch (\Exception $e) {
+            Log::error('Error in admin attendee show', [
+                'attendee_id' => $attendee->id,
+                'error' => $e->getMessage(),
+                'method' => 'show',
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            // Return a view with error message
+            return view('admin.attendees.show', [
+                'attendee' => $attendee,
+                'stats' => [
+                    'total_registrations' => 0,
+                    'confirmed_registrations' => 0,
+                    'total_checkins' => 0,
+                    'events_attended' => 0,
+                ],
+                'recentActivity' => collect(),
+                'error' => 'An error occurred while loading the attendee data. Please try again.'
+            ]);
+        }
     }
 
     public function edit(User $attendee): View
     {
-        return view('admin.attendees.edit', compact('attendee'));
+        try {
+            // Load any additional relationships if needed
+            $attendee->load(['registrations.event']);
+
+            Log::info('Admin attendee edit page loaded', [
+                'attendee_id' => $attendee->id,
+                'attendee_name' => $attendee->name,
+                'method' => 'edit'
+            ]);
+
+            return view('admin.attendees.edit', compact('attendee'));
+
+        } catch (\Exception $e) {
+            Log::error('Error in admin attendee edit', [
+                'attendee_id' => $attendee->id,
+                'error' => $e->getMessage(),
+                'method' => 'edit',
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return back()->with('error', 'An error occurred while loading the edit page. Please try again.');
+        }
     }
 
     public function update(Request $request, User $attendee): \Illuminate\Http\RedirectResponse
@@ -266,6 +319,44 @@ class AttendeeController extends Controller
             ]);
 
             return back()->with('error', 'Failed to send bulk communication: ' . $e->getMessage());
+        }
+    }
+
+    public function destroy(User $attendee): \Illuminate\Http\RedirectResponse
+    {
+        try {
+            DB::beginTransaction();
+
+            // Check if attendee has any registrations
+            if ($attendee->registrations()->exists()) {
+                return back()->with('error', 'Cannot delete attendee with existing registrations. Please cancel all registrations first.');
+            }
+
+            // Log the deletion
+            Log::info('Attendee account deleted', [
+                'attendee_id' => $attendee->id,
+                'attendee_name' => $attendee->name,
+                'attendee_email' => $attendee->email,
+                'admin_user_id' => auth()->id()
+            ]);
+
+            // Delete the attendee
+            $attendee->delete();
+
+            DB::commit();
+
+            return redirect()
+                ->route('admin.attendees.index')
+                ->with('success', 'Attendee account deleted successfully!');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to delete attendee account', [
+                'attendee_id' => $attendee->id,
+                'error' => $e->getMessage()
+            ]);
+
+            return back()->with('error', 'Failed to delete attendee account: ' . $e->getMessage());
         }
     }
 }

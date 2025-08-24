@@ -14,6 +14,7 @@ use Illuminate\View\View;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class RegistrationController extends Controller
 {
@@ -113,6 +114,70 @@ class RegistrationController extends Controller
                 'events' => collect(),
                 'error' => 'An error occurred while loading the registrations. Please try again.'
             ]);
+        }
+    }
+
+    public function eventRegistrations(Event $event, Request $request): View
+    {
+        try {
+            $query = $event->registrations()
+                ->with(['user', 'checkIn'])
+                ->withCount('checkIn');
+
+            // Search functionality
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('user', function ($userQuery) use ($search) {
+                        $userQuery->where('name', 'like', "%{$search}%")
+                                  ->orWhere('email', 'like', "%{$search}%");
+                    })
+                    ->orWhere('registration_code', 'like', "%{$search}%");
+                });
+            }
+
+            // Filter by status
+            if ($request->filled('status') && $request->status !== 'all') {
+                $query->where('status', $request->status);
+            }
+
+            // Filter by check-in status
+            if ($request->filled('checkin_status')) {
+                switch ($request->checkin_status) {
+                    case 'checked_in':
+                        $query->whereHas('checkIn');
+                        break;
+                    case 'not_checked_in':
+                        $query->whereDoesntHave('checkIn');
+                        break;
+                }
+            }
+
+            // Sort
+            $sortBy = $request->get('sort_by', 'registration_date');
+            $sortDir = $request->get('sort_dir', 'desc');
+            $query->orderBy($sortBy, $sortDir);
+
+            $registrations = $query->paginate(20)->withQueryString();
+
+            Log::info('Admin event registrations page loaded', [
+                'event_id' => $event->id,
+                'event_title' => $event->title,
+                'registrations_count' => $registrations->count(),
+                'method' => 'eventRegistrations'
+            ]);
+
+            return view('admin.registrations.event', compact('event', 'registrations'));
+
+        } catch (\Exception $e) {
+            Log::error('Error in admin event registrations', [
+                'event_id' => $event->id,
+                'error' => $e->getMessage(),
+                'method' => 'eventRegistrations',
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return back()->with('error', 'An error occurred while loading the event registrations. Please try again.');
         }
     }
 
@@ -417,6 +482,131 @@ class RegistrationController extends Controller
                     'error' => $e->getMessage()
                 ]);
             }
+        }
+    }
+
+    public function showQrCode(Registration $registration): \Illuminate\Http\Response
+    {
+        try {
+            if (!$registration->qr_code_data) {
+                abort(404, 'QR code not found for this registration');
+            }
+
+            // Generate QR code image
+            $qrCode = QrCode::format('svg')
+                ->size(300)
+                ->margin(2)
+                ->generate($registration->qr_code_data);
+
+            Log::info('Admin viewed QR code', [
+                'registration_id' => $registration->id,
+                'admin_user_id' => auth()->id(),
+                'method' => 'showQrCode'
+            ]);
+
+            return response($qrCode)
+                ->header('Content-Type', 'image/svg+xml')
+                ->header('Cache-Control', 'no-cache, no-store, must-revalidate');
+
+        } catch (\Exception $e) {
+            Log::error('Error showing QR code', [
+                'registration_id' => $registration->id,
+                'error' => $e->getMessage(),
+                'method' => 'showQrCode'
+            ]);
+
+            abort(500, 'Failed to generate QR code');
+        }
+    }
+
+    public function downloadQrCode(Registration $registration): \Symfony\Component\HttpFoundation\BinaryFileResponse
+    {
+        try {
+            if (!$registration->qr_code_data) {
+                abort(404, 'QR code not found for this registration');
+            }
+
+            // Generate QR code image
+            $qrCode = QrCode::format('svg')
+                ->size(300)
+                ->margin(2)
+                ->generate($registration->qr_code_data);
+
+            // Save to temporary file
+            $filename = "qr_code_{$registration->registration_code}.svg";
+            $filepath = storage_path("app/temp/{$filename}");
+            
+            file_put_contents($filepath, $qrCode);
+
+            Log::info('Admin downloaded QR code', [
+                'registration_id' => $registration->id,
+                'admin_user_id' => auth()->id(),
+                'method' => 'downloadQrCode'
+            ]);
+
+            return response()->download($filepath, $filename, [
+                'Content-Type' => 'image/svg+xml'
+            ])->deleteFileAfterSend();
+
+        } catch (\Exception $e) {
+            Log::error('Error downloading QR code', [
+                'registration_id' => $registration->id,
+                'error' => $e->getMessage(),
+                'method' => 'downloadQrCode'
+            ]);
+
+            abort(500, 'Failed to generate QR code');
+        }
+    }
+
+    public function printQrCode(Registration $registration): \Illuminate\View\View
+    {
+        try {
+            if (!$registration->qr_code_data) {
+                abort(404, 'QR code not found for this registration');
+            }
+
+            Log::info('Admin printed QR code', [
+                'registration_id' => $registration->id,
+                'admin_user_id' => auth()->id(),
+                'method' => 'printQrCode'
+            ]);
+
+            return view('admin.registrations.qr-print', compact('registration'));
+
+        } catch (\Exception $e) {
+            Log::error('Error printing QR code', [
+                'registration_id' => $registration->id,
+                'error' => $e->getMessage(),
+                'method' => 'printQrCode'
+            ]);
+
+            abort(500, 'Failed to load QR code print view');
+        }
+    }
+
+    public function printRegistrationCard(Registration $registration): \Illuminate\View\View
+    {
+        try {
+            // Load necessary relationships
+            $registration->load(['event', 'user']);
+
+            Log::info('Admin printed registration card', [
+                'registration_id' => $registration->id,
+                'admin_user_id' => auth()->id(),
+                'method' => 'printRegistrationCard'
+            ]);
+
+            return view('admin.registrations.print-card', compact('registration'));
+
+        } catch (\Exception $e) {
+            Log::error('Error printing registration card', [
+                'registration_id' => $registration->id,
+                'error' => $e->getMessage(),
+                'method' => 'printRegistrationCard'
+            ]);
+
+            abort(500, 'Failed to load registration card print view');
         }
     }
 }

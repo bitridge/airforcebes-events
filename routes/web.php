@@ -7,6 +7,7 @@ use App\Http\Controllers\CheckInController;
 use App\Http\Controllers\Admin\EventController as AdminEventController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\AttendeeController;
+use App\Http\Controllers\Admin\RegistrationController as AdminRegistrationController;
 use App\Http\Controllers\Admin\ReportingController;
 use Illuminate\Support\Facades\Route;
 
@@ -61,18 +62,24 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
            Route::post('/events/{event}/export-attendees', [AdminEventController::class, 'exportAttendees'])->name('events.export-attendees');
            Route::post('/events/{event}/export-checkins', [AdminEventController::class, 'exportCheckInReport'])->name('events.export-checkins');
            Route::post('/events/bulk-action', [AdminEventController::class, 'bulkAction'])->name('events.bulk-action');
-               Route::get('/registrations', [RegistrationController::class, 'adminIndex'])->name('registrations.index');
-           Route::get('/events/{event}/registrations', [RegistrationController::class, 'eventRegistrations'])->name('events.registrations');
+               Route::get('/registrations', [AdminRegistrationController::class, 'adminIndex'])->name('registrations.index');
+           Route::get('/events/{event}/registrations', [AdminRegistrationController::class, 'eventRegistrations'])->name('events.registrations');
            
            // Registration management routes
-           Route::get('/registrations/{registration}', [RegistrationController::class, 'show'])->name('registrations.show');
-           Route::get('/registrations/{registration}/edit', [RegistrationController::class, 'edit'])->name('registrations.edit');
-           Route::put('/registrations/{registration}', [RegistrationController::class, 'update'])->name('registrations.update');
-           Route::delete('/registrations/{registration}', [RegistrationController::class, 'destroy'])->name('registrations.destroy');
-           Route::post('/registrations/{registration}/resend-email', [RegistrationController::class, 'resendEmail'])->name('registrations.resend-email');
-           Route::post('/registrations/bulk-action', [RegistrationController::class, 'bulkAction'])->name('registrations.bulk-action');
-           Route::post('/registrations/export-csv', [RegistrationController::class, 'exportCsv'])->name('registrations.export-csv');
-           Route::post('/registrations/export-pdf', [RegistrationController::class, 'exportPdf'])->name('registrations.export-pdf');
+           Route::get('/registrations/{registration}', [AdminRegistrationController::class, 'show'])->name('registrations.show');
+           Route::get('/registrations/{registration}/edit', [AdminRegistrationController::class, 'edit'])->name('registrations.edit');
+           Route::put('/registrations/{registration}', [AdminRegistrationController::class, 'update'])->name('registrations.update');
+           Route::delete('/registrations/{registration}', [AdminRegistrationController::class, 'destroy'])->name('registrations.destroy');
+           Route::post('/registrations/{registration}/resend-email', [AdminRegistrationController::class, 'resendEmail'])->name('registrations.resend-email');
+           Route::post('/registrations/bulk-action', [AdminRegistrationController::class, 'bulkAction'])->name('registrations.bulk-action');
+           Route::post('/registrations/export-csv', [AdminRegistrationController::class, 'exportCsv'])->name('registrations.export-csv');
+           Route::post('/registrations/export-pdf', [AdminRegistrationController::class, 'exportPdf'])->name('registrations.export-pdf');
+           
+           // QR Code routes
+           Route::get('/registrations/{registration}/qr-view', [AdminRegistrationController::class, 'showQrCode'])->name('registrations.qr-view');
+           Route::get('/registrations/{registration}/qr-code', [AdminRegistrationController::class, 'downloadQrCode'])->name('registrations.qr-code');
+           Route::get('/registrations/{registration}/qr-print', [AdminRegistrationController::class, 'printQrCode'])->name('registrations.qr-print');
+           Route::get('/registrations/{registration}/print-card', [AdminRegistrationController::class, 'printRegistrationCard'])->name('registrations.print-card');
            
            // Attendee management routes
            Route::get('/attendees', [AttendeeController::class, 'index'])->name('attendees.index');

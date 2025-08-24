@@ -16,7 +16,12 @@
     @endif
 
     <!-- Settings Tabs -->
-    <div x-data="{ activeTab: 'general' }" class="bg-white rounded-lg shadow">
+    <div x-data="{ 
+        activeTab: 'general',
+        selectedProvider: 'custom',
+        testingSmtp: false,
+        smtpTestResult: null
+    }" class="bg-white rounded-lg shadow">
         <!-- Tab Navigation -->
         <div class="border-b border-gray-200">
             <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
@@ -106,21 +111,233 @@
                 </form>
             </div>
 
-            <!-- Other tabs -->
+            <!-- Appearance Settings Tab -->
             <div x-show="activeTab === 'appearance'" class="space-y-6">
                 <div class="border-b border-gray-200 pb-4">
                     <h3 class="text-lg font-medium text-gray-900">Appearance Settings</h3>
-                    <p class="text-sm text-gray-600 mt-1">Customize the look and feel</p>
+                    <p class="text-sm text-gray-600 mt-1">Customize the look and feel of your application</p>
                 </div>
-                <p class="text-gray-500">Appearance settings coming soon...</p>
+                
+                <form id="appearance-settings-form" class="space-y-6">
+                    @csrf
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        @foreach($settings['appearance'] ?? [] as $setting)
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">
+                                    {{ $setting->label }}
+                                    @if($setting->is_required)
+                                        <span class="text-red-500">*</span>
+                                    @endif
+                                </label>
+                                
+                                @if($setting->description)
+                                    <p class="text-xs text-gray-500">{{ $setting->description }}</p>
+                                @endif
+
+                                @switch($setting->type->value)
+                                    @case('color')
+                                        <div class="flex items-center space-x-2">
+                                            <input 
+                                                type="color" 
+                                                name="settings[{{ $setting->key }}]" 
+                                                value="{{ $setting->display_value }}"
+                                                class="h-10 w-20 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                            >
+                                            <input 
+                                                type="text" 
+                                                value="{{ $setting->display_value }}"
+                                                class="flex-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                                readonly
+                                            >
+                                        </div>
+                                        @break
+                                    
+                                    @case('select')
+                                        <select 
+                                            name="settings[{{ $setting->key }}]" 
+                                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                        >
+                                            @foreach($setting->options ?? [] as $value => $label)
+                                                <option value="{{ $value }}" {{ $setting->display_value == $value ? 'selected' : '' }}>
+                                                    {{ $label }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @break
+                                    
+                                    @case('text')
+                                        <textarea 
+                                            name="settings[{{ $setting->key }}]" 
+                                            rows="4"
+                                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                            placeholder="Enter custom CSS..."
+                                        >{{ $setting->display_value }}</textarea>
+                                        @break
+                                @endswitch
+                            </div>
+                        @endforeach
+                    </div>
+                    
+                    <div class="flex justify-end">
+                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            Save Appearance Settings
+                        </button>
+                    </div>
+                </form>
             </div>
 
+            <!-- SMTP Settings Tab -->
             <div x-show="activeTab === 'smtp'" class="space-y-6">
                 <div class="border-b border-gray-200 pb-4">
                     <h3 class="text-lg font-medium text-gray-900">SMTP Configuration</h3>
-                    <p class="text-sm text-gray-600 mt-1">Email server settings</p>
+                    <p class="text-sm text-gray-600 mt-1">Configure email server settings and test connection</p>
                 </div>
-                <p class="text-gray-500">SMTP settings coming soon...</p>
+                
+                <form id="smtp-settings-form" class="space-y-6">
+                    @csrf
+                    
+                    <!-- SMTP Provider Selection -->
+                    <div class="space-y-4">
+                        <label class="block text-sm font-medium text-gray-700">SMTP Provider</label>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            @foreach($smtpProviders as $key => $provider)
+                                <button 
+                                    type="button"
+                                    onclick="selectSmtpProvider('{{ $key }}')"
+                                    class="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    id="provider-{{ $key }}"
+                                >
+                                    <div class="text-center">
+                                        <div class="text-sm font-medium text-gray-900">{{ $provider['name'] }}</div>
+                                    </div>
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- SMTP Configuration Fields -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        @foreach($settings['smtp'] ?? [] as $setting)
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">
+                                    {{ $setting->label }}
+                                    @if($setting->is_required)
+                                        <span class="text-red-500">*</span>
+                                    @endif
+                                </label>
+                                
+                                @if($setting->description)
+                                    <p class="text-xs text-gray-500">{{ $setting->description }}</p>
+                                @endif
+
+                                @switch($setting->type->value)
+                                    @case('text')
+                                    @case('email')
+                                        <input 
+                                            type="{{ $setting->type->value }}" 
+                                            name="settings[{{ $setting->key }}]" 
+                                            value="{{ $setting->display_value }}"
+                                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                            @if($setting->is_required) required @endif
+                                        >
+                                        @break
+                                    
+                                    @case('password')
+                                                                                    <input 
+                                                type="password" 
+                                                name="settings[{{ $setting->key }}]" 
+                                                value="{{ $setting->display_value }}"
+                                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 sm:text-sm"
+                                            >
+                                        @break
+                                    
+                                    @case('select')
+                                        <select 
+                                            name="settings[{{ $setting->key }}]" 
+                                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                            @if($setting->is_required) required @endif
+                                        >
+                                            @foreach($setting->options ?? [] as $value => $label)
+                                                <option value="{{ $value }}" {{ $setting->display_value == $value ? 'selected' : '' }}>
+                                                    {{ $label }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @break
+                                    
+                                    @case('integer')
+                                        <input 
+                                            type="number" 
+                                            name="settings[{{ $setting->key }}]" 
+                                            value="{{ $setting->display_value }}"
+                                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                            @if($setting->is_required) required @endif
+                                        >
+                                        @break
+                                @endswitch
+                            </div>
+                        @endforeach
+                    </div>
+                    
+                    <!-- Test Email Section -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="text-sm font-medium text-gray-900 mb-3">Test SMTP Connection</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Test Email Address</label>
+                                <input 
+                                    type="email" 
+                                    id="test-email"
+                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                    placeholder="Enter email to send test to"
+                                >
+                            </div>
+                            <div class="flex items-end">
+                                <button 
+                                    type="button"
+                                    onclick="testSmtpConnection()"
+                                    class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                                    id="test-connection-btn"
+                                >
+                                    <span id="test-btn-text">Test Connection</span>
+                                    <span id="test-btn-loading" class="hidden flex items-center">
+                                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Testing...
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Test Results -->
+                        <div x-show="smtpTestResult" class="mt-4 p-3 rounded-md" :class="smtpTestResult.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <svg x-show="smtpTestResult.success" class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <svg x-show="!smtpTestResult.success" class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm font-medium" x-text="smtpTestResult.message"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="testSmtpConnection()" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                            Test Connection
+                        </button>
+                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            Save SMTP Settings
+                        </button>
+                    </div>
+                </form>
             </div>
 
             <div x-show="activeTab === 'notifications'" class="space-y-6">
@@ -143,6 +360,102 @@
 </div>
 
 <script>
+// Global variables for SMTP testing
+let selectedProvider = 'custom';
+const smtpProviders = @json($smtpProviders);
+
+// Function to select SMTP provider
+function selectSmtpProvider(provider) {
+    selectedProvider = provider;
+    
+    // Update visual selection
+    document.querySelectorAll('[id^="provider-"]').forEach(btn => {
+        btn.classList.remove('border-blue-500', 'bg-blue-50');
+        btn.classList.add('border-gray-200');
+    });
+    
+    const selectedBtn = document.getElementById('provider-' + provider);
+    if (selectedBtn) {
+        selectedBtn.classList.remove('border-gray-200');
+        selectedBtn.classList.add('border-blue-500', 'bg-blue-50');
+    }
+    
+    if (smtpProviders[provider]) {
+        const data = smtpProviders[provider];
+        document.querySelector('input[name="settings[mail.smtp_host]"]').value = data.host;
+        document.querySelector('input[name="settings[mail.smtp_port]"]').value = data.port;
+        document.querySelector('select[name="settings[mail.smtp_encryption]"]').value = data.encryption;
+        document.querySelector('select[name="settings[mail.driver]"]').value = data.driver;
+    }
+}
+
+// Function to test SMTP connection
+async function testSmtpConnection() {
+    const testBtn = document.getElementById('test-connection-btn');
+    const testBtnText = document.getElementById('test-btn-text');
+    const testBtnLoading = document.getElementById('test-btn-loading');
+    const testResults = document.getElementById('test-results');
+    const successIcon = document.getElementById('success-icon');
+    const errorIcon = document.getElementById('error-icon');
+    const testMessage = document.getElementById('test-message');
+    
+    // Show loading state
+    testBtn.disabled = true;
+    testBtnText.classList.add('hidden');
+    testBtnLoading.classList.remove('hidden');
+    
+    // Hide previous results
+    testResults.classList.add('hidden');
+    
+    const form = document.getElementById('smtp-settings-form');
+    const formData = new FormData(form);
+    
+    // Add test email
+    const testEmail = document.getElementById('test-email').value;
+    if (testEmail) {
+        formData.append('smtp_settings[test_email]', testEmail);
+    }
+
+    try {
+        const response = await fetch('{{ route("admin.settings.test-smtp") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            },
+            body: formData
+        });
+
+        const result = await response.json();
+        
+        // Show results
+        testResults.classList.remove('hidden');
+        testMessage.textContent = result.message;
+        
+        if (result.success) {
+            testResults.className = 'mt-4 p-3 rounded-md bg-green-50 text-green-800';
+            successIcon.classList.remove('hidden');
+            errorIcon.classList.add('hidden');
+        } else {
+            testResults.className = 'mt-4 p-3 rounded-md bg-red-50 text-red-800';
+            successIcon.classList.add('hidden');
+            errorIcon.classList.remove('hidden');
+        }
+        
+    } catch (error) {
+        // Show error results
+        testResults.classList.remove('hidden');
+        testResults.className = 'mt-4 p-3 rounded-md bg-red-50 text-red-800';
+        testMessage.textContent = 'Failed to test SMTP connection: ' + error.message;
+        successIcon.classList.add('hidden');
+        errorIcon.classList.remove('hidden');
+    } finally {
+        // Reset button state
+        testBtn.disabled = false;
+        testBtnText.classList.remove('hidden');
+        testBtnLoading.classList.add('hidden');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // General Settings Form
     document.getElementById('general-settings-form').addEventListener('submit', async function(e) {
@@ -163,6 +476,62 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (result.success) {
                 alert('General settings saved successfully!');
+            } else {
+                alert('Failed to save settings: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Save failed:', error);
+            alert('Failed to save settings');
+        }
+    });
+
+    // Appearance Settings Form
+    document.getElementById('appearance-settings-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        
+        try {
+            const response = await fetch('{{ route("admin.settings.update-group", "appearance") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                },
+                body: formData
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('Appearance settings saved successfully!');
+            } else {
+                alert('Failed to save settings: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Save failed:', error);
+            alert('Failed to save settings');
+        }
+    });
+
+    // SMTP Settings Form
+    document.getElementById('smtp-settings-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        
+        try {
+            const response = await fetch('{{ route("admin.settings.update-group", "smtp") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                },
+                body: formData
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('SMTP settings saved successfully!');
             } else {
                 alert('Failed to save settings: ' + result.message);
             }

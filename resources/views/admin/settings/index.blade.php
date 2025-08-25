@@ -40,27 +40,15 @@
     @endif
 
     <!-- Settings Tabs -->
-    <div id="settings-container" x-data="{ 
-        activeTab: 'general'
-    }" 
-    x-init="
-        try {
-            window.settingsComponent = $data;
-            console.log('Alpine.js initialized successfully');
-        } catch (error) {
-            console.error('Alpine.js initialization failed:', error);
-            initFallbackTabs();
-        }
-    "
+    <div id="settings-container" 
     class="bg-white rounded-lg shadow">
         <!-- Tab Navigation -->
         <div class="border-b border-gray-200">
             <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
                 @foreach(['general', 'appearance', 'notifications', 'system'] as $tab)
                     <button
-                        @click="activeTab = '{{ $tab }}'"
-                        :class="activeTab === '{{ $tab }}' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
-                        class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+                        onclick="showTab('{{ $tab }}')"
+                        class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                         data-tab="{{ $tab }}"
                     >
                         {{ ucfirst(str_replace('_', ' ', $tab)) }}
@@ -72,7 +60,7 @@
         <!-- Tab Content -->
         <div class="p-6">
             <!-- General Settings Tab -->
-            <div x-show="activeTab === 'general'" data-tab="general" class="tab-content space-y-6">
+            <div data-tab="general" class="tab-content space-y-6">
                 <div class="border-b border-gray-200 pb-4">
                     <h3 class="text-lg font-medium text-gray-900">General Settings</h3>
                     <p class="text-sm text-gray-600 mt-1">Basic application configuration</p>
@@ -191,7 +179,7 @@
             </div>
 
             <!-- Appearance Settings Tab -->
-            <div x-show="activeTab === 'appearance'" data-tab="appearance" class="tab-content space-y-6">
+            <div data-tab="appearance" class="tab-content space-y-6">
                 <div class="border-b border-gray-200 pb-4">
                     <h3 class="text-lg font-medium text-gray-900">Appearance Settings</h3>
                     <p class="text-sm text-gray-600 mt-1">Customize the look and feel of your application</p>
@@ -216,10 +204,10 @@
                                 @switch($setting->type->value)
                                     @case('text')
                                     @case('color')
-                                        <input 
+                                            <input 
                                             type="{{ $setting->type->value }}" 
-                                            name="settings[{{ $setting->key }}]" 
-                                            value="{{ $setting->display_value }}"
+                                                name="settings[{{ $setting->key }}]" 
+                                                value="{{ $setting->display_value }}"
                                             class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                                             @if($setting->is_required) required @endif
                                         >
@@ -268,7 +256,7 @@
 
 
             <!-- Notifications Settings Tab -->
-            <div x-show="activeTab === 'notifications'" data-tab="notifications" class="tab-content space-y-6">
+            <div data-tab="notifications" class="tab-content space-y-6">
                 <div class="border-b border-gray-200 pb-4">
                     <h3 class="text-lg font-medium text-gray-900">Notification Settings</h3>
                     <p class="text-sm text-gray-600 mt-1">Configure email notifications and alerts</p>
@@ -408,13 +396,13 @@
                                 @switch($setting->type->value)
                                     @case('text')
                                     @case('email')
-                                        <input 
+                                                                                    <input 
                                             type="{{ $setting->type->value }}" 
-                                            name="settings[{{ $setting->key }}]" 
-                                            value="{{ $setting->display_value }}"
+                                                name="settings[{{ $setting->key }}]" 
+                                                value="{{ $setting->display_value }}"
                                             class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                                             @if($setting->is_required) required @endif
-                                        >
+                                            >
                                         @break
                                     
                                     @case('select')
@@ -473,20 +461,20 @@
     async function clearCache(type) {
         try {
             const response = await fetch('{{ route("admin.settings.clear-cache") }}', {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                     'Content-Type': 'application/json',
-                },
+            },
                 body: JSON.stringify({ type: type })
-            });
+        });
 
-            const result = await response.json();
-            
-            if (result.success) {
+        const result = await response.json();
+        
+        if (result.success) {
                 alert(`${type.charAt(0).toUpperCase() + type.slice(1)} cache cleared successfully!`);
                 location.reload();
-            } else {
+        } else {
                 alert(`Failed to clear ${type} cache: ${result.message}`);
             }
         } catch (error) {
@@ -509,7 +497,7 @@
             await clearCache('config');
             
             alert('All caches cleared successfully!');
-        } catch (error) {
+    } catch (error) {
             console.error('Cache clear failed:', error);
             alert('Failed to clear all caches. Please try again.');
         }
@@ -718,6 +706,6 @@
                 initFallbackTabs();
             }
         }, 3000);
-    });
+});
 </script>
 @endsection

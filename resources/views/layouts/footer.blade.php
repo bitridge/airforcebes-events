@@ -56,8 +56,8 @@
             <div>
                 <h3 class="text-white font-semibold mb-4">Connect</h3>
                 <div class="space-y-2 text-sm">
-                    <p class="text-slate-400">Air Force Life Cycle Management Center</p>
-                    <p class="text-slate-400">Wright-Patterson AFB, OH</p>
+                    <p class="text-slate-400">BES</p>
+                    <p class="text-slate-400">Montgomery, AL</p>
                     <div class="flex space-x-4 mt-4">
                         <a href="#" class="text-slate-400 hover:text-white transition-colors">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -77,7 +77,7 @@
         <!-- Bottom Section -->
         <div class="border-t border-slate-700 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
             <p class="text-sm text-slate-400">
-                {!! app_setting('appearance.footer_text', '&copy; ' . date('Y') . ' Air Force Life Cycle Management Center. All rights reserved.') !!}
+                {!! app_setting('appearance.footer_text', '&copy; ' . date('Y') . ' BES All rights reserved.') !!}
             </p>
             <div class="flex space-x-6 mt-4 md:mt-0">
                 <a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">Privacy Policy</a>

@@ -124,7 +124,7 @@
                     </button>
                 </div>
             </form>
-        </div>
+            </div>
 
         <!-- Change Password Form -->
         <div class="bg-white rounded-lg shadow p-6">
@@ -158,7 +158,7 @@
                     @error('password')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
-                </div>
+            </div>
 
                 <!-- Confirm New Password -->
                 <div>
@@ -198,7 +198,7 @@
                             class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-md font-medium transition-colors duration-200">
                         Delete Account
                     </button>
-                </div>
+            </div>
             </form>
         </div>
     </div>

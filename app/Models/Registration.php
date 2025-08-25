@@ -21,6 +21,7 @@ class Registration extends Model
         'qr_security_hash',
         'registration_date',
         'status',
+        'notes',
     ];
 
     protected function casts(): array

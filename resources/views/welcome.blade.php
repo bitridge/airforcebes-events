@@ -1,16 +1,16 @@
 @extends('layouts.app')
 
 @section('title', config('app.name') . ' - Professional Development Events')
-@section('description', 'Discover and register for upcoming Air Force events, workshops, and networking opportunities.')
+@section('description', 'Discover and register for upcoming BES events, workshops, and networking opportunities.')
 
 @section('content')
     <!-- Hero Section -->
     <section class="bg-slate-800 text-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
             <div class="text-center">
-                <h1 class="text-4xl md:text-6xl font-bold mb-6">AF Event Management</h1>
+                <h1 class="text-4xl md:text-6xl font-bold mb-6">BES Event Management</h1>
                 <p class="text-xl md:text-2xl text-slate-300 mb-8 max-w-3xl mx-auto">
-                    Discover and register for upcoming Air Force events, workshops, and networking opportunities.
+                    Discover and register for upcoming BES events, workshops, and networking opportunities.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="{{ route('events.index') }}" class="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-colors duration-200">
@@ -57,7 +57,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 class="text-3xl font-bold mb-4">Ready to Join Our Community?</h2>
             <p class="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
-                Connect with fellow Air Force professionals and advance your career.
+                Connect with fellow BES professionals and advance your career.
             </p>
             @guest
                 <a href="{{ route('register') }}" class="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-colors duration-200">

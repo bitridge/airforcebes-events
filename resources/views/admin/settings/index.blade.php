@@ -3,6 +3,30 @@
 @section('title', 'Settings Management')
 
 @section('content')
+<style>
+    /* Fallback CSS for tabs - ensures content is visible even if JavaScript fails */
+    .tab-content {
+        display: none;
+    }
+    .tab-content.active {
+        display: block;
+    }
+    /* Show general tab by default */
+    .tab-content[data-tab="general"] {
+        display: block;
+    }
+    /* Ensure tab buttons are clickable */
+    .tab-button {
+        cursor: pointer;
+        user-select: none;
+    }
+    /* Fallback tab styles */
+    .tab-button.active {
+        border-bottom-color: #3b82f6 !important;
+        color: #2563eb !important;
+    }
+</style>
+
 <div class="container mx-auto px-4 py-8">
     <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-900">Settings Management</h1>
@@ -20,7 +44,13 @@
         activeTab: 'general'
     }" 
     x-init="
-        window.settingsComponent = $data;
+        try {
+            window.settingsComponent = $data;
+            console.log('Alpine.js initialized successfully');
+        } catch (error) {
+            console.error('Alpine.js initialization failed:', error);
+            initFallbackTabs();
+        }
     "
     class="bg-white rounded-lg shadow">
         <!-- Tab Navigation -->
@@ -30,7 +60,8 @@
                     <button
                         @click="activeTab = '{{ $tab }}'"
                         :class="activeTab === '{{ $tab }}' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
-                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+                        class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+                        data-tab="{{ $tab }}"
                     >
                         {{ ucfirst(str_replace('_', ' ', $tab)) }}
                     </button>
@@ -41,7 +72,7 @@
         <!-- Tab Content -->
         <div class="p-6">
             <!-- General Settings Tab -->
-            <div x-show="activeTab === 'general'" class="space-y-6">
+            <div x-show="activeTab === 'general'" data-tab="general" class="tab-content space-y-6">
                 <div class="border-b border-gray-200 pb-4">
                     <h3 class="text-lg font-medium text-gray-900">General Settings</h3>
                     <p class="text-sm text-gray-600 mt-1">Basic application configuration</p>
@@ -160,7 +191,7 @@
             </div>
 
             <!-- Appearance Settings Tab -->
-            <div x-show="activeTab === 'appearance'" class="space-y-6">
+            <div x-show="activeTab === 'appearance'" data-tab="appearance" class="tab-content space-y-6">
                 <div class="border-b border-gray-200 pb-4">
                     <h3 class="text-lg font-medium text-gray-900">Appearance Settings</h3>
                     <p class="text-sm text-gray-600 mt-1">Customize the look and feel of your application</p>
@@ -237,7 +268,7 @@
 
 
             <!-- Notifications Settings Tab -->
-            <div x-show="activeTab === 'notifications'" class="space-y-6">
+            <div x-show="activeTab === 'notifications'" data-tab="notifications" class="tab-content space-y-6">
                 <div class="border-b border-gray-200 pb-4">
                     <h3 class="text-lg font-medium text-gray-900">Notification Settings</h3>
                     <p class="text-sm text-gray-600 mt-1">Configure email notifications and alerts</p>
@@ -318,7 +349,7 @@
             </div>
 
             <!-- System Settings Tab -->
-            <div x-show="activeTab === 'system'" class="space-y-6">
+            <div x-show="activeTab === 'system'" data-tab="system" class="tab-content space-y-6">
                 <div class="border-b border-gray-200 pb-4">
                     <h3 class="text-lg font-medium text-gray-900">System Settings</h3>
                     <p class="text-sm text-gray-600 mt-1">System configuration and maintenance</p>
@@ -593,6 +624,100 @@
             console.error('Save failed:', error);
             alert('Failed to save settings');
         }
+    });
+
+    // Fallback Tab System for Production
+    function initFallbackTabs() {
+        console.log('Initializing fallback tab system');
+        
+        // Hide all tab content initially
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabContents.forEach(content => {
+            content.style.display = 'none';
+        });
+        
+        // Show general tab by default
+        const generalTab = document.querySelector('[data-tab="general"]');
+        if (generalTab) {
+            generalTab.style.display = 'block';
+        }
+        
+        // Add click handlers to tab buttons
+        const tabButtons = document.querySelectorAll('.tab-button');
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const tabName = this.getAttribute('data-tab');
+                if (tabName) {
+                    showTab(tabName);
+                }
+            });
+        });
+        
+        // Update initial tab button state
+        updateTabButtonState('general');
+    }
+
+    function showTab(tabName) {
+        console.log('Showing tab:', tabName);
+        
+        // Hide all tab content
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabContents.forEach(content => {
+            content.style.display = 'none';
+        });
+        
+        // Show selected tab content
+        const selectedTab = document.querySelector(`[data-tab="${tabName}"]`);
+        if (selectedTab) {
+            selectedTab.style.display = 'block';
+        }
+        
+        // Update tab button styles
+        updateTabButtonState(tabName);
+    }
+
+    function updateTabButtonState(activeTabName) {
+        const tabButtons = document.querySelectorAll('.tab-button');
+        tabButtons.forEach(button => {
+            const buttonTab = button.getAttribute('data-tab');
+            if (buttonTab === activeTabName) {
+                button.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                button.classList.add('border-blue-500', 'text-blue-600', 'active');
+            } else {
+                button.classList.remove('border-blue-500', 'text-blue-600', 'active');
+                button.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+            }
+        });
+    }
+
+    // Initialize fallback system if Alpine.js is not available
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if Alpine.js is loaded
+        if (typeof Alpine === 'undefined') {
+            console.log('Alpine.js not detected, using fallback tab system');
+            initFallbackTabs();
+        } else {
+            console.log('Alpine.js detected, tabs should work normally');
+            
+            // Test if Alpine.js is actually working
+            setTimeout(function() {
+                const generalTab = document.querySelector('[x-show="activeTab === \'general\'"]');
+                if (generalTab && generalTab.style.display === 'none') {
+                    console.log('Alpine.js detected but tabs not working, forcing fallback system');
+                    initFallbackTabs();
+                }
+            }, 1000);
+        }
+        
+        // Additional fallback: if tabs still don't work after 3 seconds, force fallback
+        setTimeout(function() {
+            const generalTab = document.querySelector('[x-show="activeTab === \'general\'"]');
+            if (generalTab && generalTab.style.display === 'none') {
+                console.log('Tabs not working after timeout, forcing fallback system');
+                initFallbackTabs();
+            }
+        }, 3000);
     });
 </script>
 @endsection

@@ -1,197 +1,165 @@
-<x-app-layout>
-    <x-slot name="title">Edit Event - {{ $event->title }} - {{ config('app.name') }}</x-slot>
+@extends('layouts.app')
 
-    @push('head')
-    <script src="https://cdn.ckeditor.com/ckeditor5/40.1.0/classic/ckeditor.js"></script>
-    <style>
-        .ck-editor__editable { min-height: 200px; }
-        .image-preview { max-width: 300px; max-height: 200px; }
-    </style>
-    @endpush
+@section('title', 'Edit Event - ' . config('app.name'))
 
+@section('content')
     <div class="py-8">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <!-- Header -->
-            <div class="mb-6">
-                <h1 class="text-2xl font-semibold text-gray-900">Edit Event</h1>
-                <p class="mt-2 text-sm text-gray-600">Update the details for "{{ $event->title }}".</p>
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-2xl font-semibold text-gray-900">Edit Event</h1>
+                    <p class="text-gray-600">{{ $event->title }}</p>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="{{ route('admin.events.show', $event) }}" class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                        View Event
+                    </a>
+                    <a href="{{ route('admin.events.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        Back to Events
+                    </a>
+                </div>
             </div>
 
-            <form method="POST" action="{{ route('admin.events.update', $event) }}" enctype="multipart/form-data" class="space-y-6">
-                @csrf
-                @method('PUT')
-                
-                <div class="bg-white rounded-lg shadow p-6">
-                    <!-- Basic Information -->
-                    <div class="mb-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            @if(session('success'))
+                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+                    {{ session('error') }}
+                </div>
+            @endif
+
+            <!-- Edit Event Form -->
+            <div class="bg-white shadow rounded-lg">
+                <form action="{{ route('admin.events.update', $event) }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    @method('PUT')
+                    
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">Event Information</h3>
+                    </div>
+                    
+                    <div class="px-6 py-4 space-y-6">
+                        <!-- Basic Information -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Event Title *</label>
+                                <label for="title" class="block text-sm font-medium text-gray-700">Event Title *</label>
                                 <input type="text" id="title" name="title" value="{{ old('title', $event->title) }}" required
-                                       class="w-full border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500">
+                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                 @error('title')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
                             
                             <div>
-                                <label for="slug" class="block text-sm font-medium text-gray-700 mb-1">URL Slug</label>
-                                <input type="text" id="slug" name="slug" value="{{ old('slug', $event->slug) }}" 
-                                       placeholder="Auto-generated from title"
-                                       class="w-full border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500">
-                                <p class="mt-1 text-xs text-gray-500">Leave empty to auto-generate from title</p>
+                                <label for="slug" class="block text-sm font-medium text-gray-700">Slug</label>
+                                <input type="text" id="slug" name="slug" value="{{ old('slug', $event->slug) }}"
+                                       placeholder="auto-generated if empty"
+                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                 @error('slug')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
                         </div>
-                        
-                        <div class="mt-4">
-                            <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description *</label>
-                            <textarea id="description" name="description" required>{{ old('description', $event->description) }}</textarea>
+
+                        <!-- Description -->
+                        <div>
+                            <label for="description" class="block text-sm font-medium text-gray-700">Description *</label>
+                            <textarea id="description" name="description" rows="6" required
+                                      class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">{{ old('description', $event->description) }}</textarea>
                             @error('description')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
-                    </div>
 
-                    <!-- Date & Time -->
-                    <div class="mb-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">Date & Time</h3>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Date and Time -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">Start Date *</label>
-                                <input type="date" id="start_date" name="start_date" 
-                                       value="{{ old('start_date', $event->start_date?->format('Y-m-d')) }}" required
-                                       class="w-full border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500">
+                                <label for="start_date" class="block text-sm font-medium text-gray-700">Start Date *</label>
+                                <input type="date" id="start_date" name="start_date" value="{{ old('start_date', $event->start_date->format('Y-m-d')) }}" required
+                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                 @error('start_date')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
                             
                             <div>
-                                <label for="end_date" class="block text-sm font-medium text-gray-700 mb-1">End Date *</label>
-                                <input type="date" id="end_date" name="end_date" 
-                                       value="{{ old('end_date', $event->end_date?->format('Y-m-d')) }}" required
-                                       class="w-full border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500">
+                                <label for="end_date" class="block text-sm font-medium text-gray-700">End Date *</label>
+                                <input type="date" id="end_date" name="end_date" value="{{ old('end_date', $event->end_date->format('Y-m-d')) }}" required
+                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                 @error('end_date')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
-                            
-                            <div>
-                                <label for="registration_deadline" class="block text-sm font-medium text-gray-700 mb-1">Registration Deadline</label>
-                                <input type="date" id="registration_deadline" name="registration_deadline" 
-                                       value="{{ old('registration_deadline', $event->registration_deadline?->format('Y-m-d')) }}"
-                                       class="w-full border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500">
-                                @error('registration_deadline')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
                         </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label for="start_time" class="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
-                                <input type="time" id="start_time" name="start_time" 
-                                       value="{{ old('start_time', $event->start_time) }}"
-                                       class="w-full border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500">
+                                <label for="start_time" class="block text-sm font-medium text-gray-700">Start Time</label>
+                                <input type="time" id="start_time" name="start_time" value="{{ old('start_time', $event->start_time ? $event->start_time->format('H:i') : '') }}"
+                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                 @error('start_time')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
                             
                             <div>
-                                <label for="end_time" class="block text-sm font-medium text-gray-700 mb-1">End Time</label>
-                                <input type="time" id="end_time" name="end_time" 
-                                       value="{{ old('end_time', $event->end_time) }}"
-                                       class="w-full border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500">
+                                <label for="end_time" class="block text-sm font-medium text-gray-700">End Time</label>
+                                <input type="time" id="end_time" name="end_time" value="{{ old('end_time', $event->end_time ? $event->end_time->format('H:i') : '') }}"
+                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                 @error('end_time')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Location & Capacity -->
-                    <div class="mb-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">Location & Capacity</h3>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Venue and Capacity -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label for="venue" class="block text-sm font-medium text-gray-700 mb-1">Venue *</label>
+                                <label for="venue" class="block text-sm font-medium text-gray-700">Venue *</label>
                                 <input type="text" id="venue" name="venue" value="{{ old('venue', $event->venue) }}" required
-                                       class="w-full border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500">
+                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                 @error('venue')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
                             
                             <div>
-                                <label for="max_capacity" class="block text-sm font-medium text-gray-700 mb-1">Maximum Capacity</label>
-                                <input type="number" id="max_capacity" name="max_capacity" 
-                                       value="{{ old('max_capacity', $event->max_capacity) }}" min="1"
-                                       class="w-full border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500">
-                                <p class="mt-1 text-xs text-gray-500">Leave empty for unlimited capacity</p>
+                                <label for="max_capacity" class="block text-sm font-medium text-gray-700">Maximum Capacity</label>
+                                <input type="number" id="max_capacity" name="max_capacity" value="{{ old('max_capacity', $event->max_capacity) }}" min="1"
+                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                 @error('max_capacity')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Media & SEO -->
-                    <div class="mb-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">Media & SEO</h3>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Registration Settings -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label for="featured_image" class="block text-sm font-medium text-gray-700 mb-1">Featured Image</label>
-                                
-                                @if($event->featured_image)
-                                    <div class="mb-3">
-                                        <p class="text-sm text-gray-600 mb-2">Current image:</p>
-                                        <img src="{{ Storage::url($event->featured_image) }}" 
-                                             alt="Current featured image" class="image-preview rounded-lg">
-                                    </div>
-                                @endif
-                                
-                                <input type="file" id="featured_image" name="featured_image" accept="image/*"
-                                       class="w-full border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500">
-                                <p class="mt-1 text-xs text-gray-500">Recommended: 1200x630px, max 2MB. Leave empty to keep current image.</p>
-                                @error('featured_image')
+                                <label for="registration_deadline" class="block text-sm font-medium text-gray-700">Registration Deadline</label>
+                                <input type="datetime-local" id="registration_deadline" name="registration_deadline" 
+                                       value="{{ old('registration_deadline', $event->registration_deadline ? $event->registration_deadline->format('Y-m-d\TH:i') : '') }}"
+                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                @error('registration_deadline')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
-                                
-                                <div id="imagePreview" class="mt-2 hidden">
-                                    <p class="text-sm text-gray-600 mb-2">New image preview:</p>
-                                    <img id="previewImg" class="image-preview rounded-lg" alt="Preview">
-                                </div>
                             </div>
                             
                             <div>
-                                <label for="meta_description" class="block text-sm font-medium text-gray-700 mb-1">Meta Description</label>
-                                <textarea id="meta_description" name="meta_description" rows="3" maxlength="160"
-                                          class="w-full border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500">{{ old('meta_description', $event->meta_description) }}</textarea>
-                                <p class="mt-1 text-xs text-gray-500">Max 160 characters for SEO</p>
-                                @error('meta_description')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Publication Settings -->
-                    <div class="mb-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">Publication Settings</h3>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                                <select id="status" name="status" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500">
+                                <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+                                <select id="status" name="status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                     <option value="draft" {{ old('status', $event->status) === 'draft' ? 'selected' : '' }}>Draft</option>
                                     <option value="published" {{ old('status', $event->status) === 'published' ? 'selected' : '' }}>Published</option>
                                     <option value="completed" {{ old('status', $event->status) === 'completed' ? 'selected' : '' }}>Completed</option>
@@ -201,93 +169,61 @@
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
-                            
-                            <div>
-                                <label for="is_featured" class="flex items-center">
-                                    <input type="checkbox" id="is_featured" name="is_featured" value="1" 
-                                           {{ old('is_featured', $event->is_featured) ? 'checked' : '' }}
-                                           class="rounded border-gray-300 text-red-600 focus:ring-red-500">
-                                    <span class="ml-2 text-sm text-gray-700">Featured Event</span>
-                                </label>
-                                <p class="mt-1 text-xs text-gray-500">Show on homepage and featured sections</p>
-                            </div>
+                        </div>
+
+                        <!-- Featured Image -->
+                        <div>
+                            <label for="featured_image" class="block text-sm font-medium text-gray-700">Featured Image</label>
+                            @if($event->featured_image)
+                                <div class="mt-2 mb-4">
+                                    <img src="{{ Storage::url($event->featured_image) }}" alt="Current featured image" class="w-32 h-24 object-cover rounded-lg">
+                                    <p class="text-sm text-gray-500 mt-1">Current image</p>
+                                </div>
+                            @endif
+                            <input type="file" id="featured_image" name="featured_image" accept="image/*"
+                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <p class="mt-1 text-sm text-gray-500">PNG, JPG, GIF up to 2MB. Leave empty to keep current image.</p>
+                            @error('featured_image')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- Tags -->
+                        <div>
+                            <label for="tags" class="block text-sm font-medium text-gray-700">Tags</label>
+                            <input type="text" id="tags" name="tags" value="{{ old('tags', $event->tags) }}"
+                                   placeholder="Enter tags separated by commas"
+                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <p class="mt-1 text-sm text-gray-500">Separate multiple tags with commas</p>
+                            @error('tags')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
-                </div>
-
-                <!-- Form Actions -->
-                <div class="flex justify-end space-x-3">
-                    <a href="{{ route('admin.events.show', $event) }}" 
-                       class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                        Cancel
-                    </a>
-                    <button type="submit" 
-                            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
-                        Update Event
-                    </button>
-                </div>
-            </form>
+                    
+                    <div class="px-6 py-4 bg-gray-50 text-right rounded-b-lg">
+                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Update Event
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
-    @push('scripts')
     <script>
-        // Initialize CKEditor
-        ClassicEditor
-            .create(document.querySelector('#description'), {
-                toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|', 'outdent', 'indent', '|', 'undo', 'redo']
-            })
-            .catch(error => {
-                console.error(error);
-            });
-
         // Auto-generate slug from title
         document.getElementById('title').addEventListener('input', function() {
-            const slug = this.value
-                .toLowerCase()
+            const title = this.value;
+            const slug = title.toLowerCase()
                 .replace(/[^a-z0-9 -]/g, '')
                 .replace(/\s+/g, '-')
                 .replace(/-+/g, '-')
                 .trim('-');
-            
-            if (!document.getElementById('slug').value) {
-                document.getElementById('slug').value = slug;
-            }
-        });
-
-        // Image preview
-        document.getElementById('featured_image').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('previewImg').src = e.target.result;
-                    document.getElementById('imagePreview').classList.remove('hidden');
-                };
-                reader.readAsDataURL(file);
-            } else {
-                document.getElementById('imagePreview').classList.add('hidden');
-            }
-        });
-
-        // Form validation
-        document.querySelector('form').addEventListener('submit', function(e) {
-            const startDate = new Date(document.getElementById('start_date').value);
-            const endDate = new Date(document.getElementById('end_date').value);
-            const regDeadline = document.getElementById('registration_deadline').value;
-            
-            if (endDate <= startDate) {
-                e.preventDefault();
-                alert('End date must be after start date');
-                return;
-            }
-            
-            if (regDeadline && new Date(regDeadline) >= startDate) {
-                e.preventDefault();
-                alert('Registration deadline must be before event start date');
-                return;
-            }
+            document.getElementById('slug').value = slug;
         });
     </script>
-    @endpush
-</x-app-layout>
+@endsection

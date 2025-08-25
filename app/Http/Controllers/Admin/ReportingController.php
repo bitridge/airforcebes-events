@@ -18,7 +18,25 @@ class ReportingController extends Controller
 {
     public function index(): View
     {
-        return view('admin.reports.index');
+        // Get overview statistics
+        $overview = [
+            'total_events' => Event::count(),
+            'total_registrations' => Registration::count(),
+            'total_attendees' => User::where('role', 'attendee')->count(),
+            'checkin_rate' => $this->getCheckInRate(),
+            'avg_capacity' => $this->getAverageCapacityUtilization(),
+        ];
+
+        // Get chart data
+        $chartData = [
+            'labels' => $this->getRegistrationTrendLabels(),
+            'registrations' => $this->getRegistrationTrendValues(),
+            'event_names' => $this->getEventNames(),
+            'event_registrations' => $this->getEventRegistrationCounts(),
+            'event_checkins' => $this->getEventCheckInCounts(),
+        ];
+
+        return view('admin.reports.index', compact('overview', 'chartData'));
     }
 
     public function eventReports(Request $request): View
@@ -506,5 +524,82 @@ class ReportingController extends Controller
         // This would use a PDF library like DomPDF
         // For now, return a placeholder
         return response('PDF export not yet implemented', 501);
+    }
+
+    // Helper methods for reports index
+    private function getCheckInRate(): float
+    {
+        $totalRegistrations = Registration::count();
+        $totalCheckIns = CheckIn::count();
+        
+        if ($totalRegistrations === 0) {
+            return 0;
+        }
+        
+        return round(($totalCheckIns / $totalRegistrations) * 100, 1);
+    }
+
+    private function getAverageCapacityUtilization(): float
+    {
+        $events = Event::where('max_capacity', '>', 0)->get();
+        
+        if ($events->isEmpty()) {
+            return 0;
+        }
+        
+        $totalUtilization = 0;
+        foreach ($events as $event) {
+            $registrations = $event->registrations()->where('status', 'confirmed')->count();
+            $utilization = ($registrations / $event->max_capacity) * 100;
+            $totalUtilization += $utilization;
+        }
+        
+        return round($totalUtilization / $events->count(), 1);
+    }
+
+    private function getRegistrationTrendLabels(): array
+    {
+        $labels = [];
+        for ($i = 29; $i >= 0; $i--) {
+            $labels[] = Carbon::now()->subDays($i)->format('M j');
+        }
+        return $labels;
+    }
+
+    private function getRegistrationTrendValues(): array
+    {
+        $values = [];
+        for ($i = 29; $i >= 0; $i--) {
+            $date = Carbon::now()->subDays($i);
+            $count = Registration::whereDate('created_at', $date)->count();
+            $values[] = $count;
+        }
+        return $values;
+    }
+
+    private function getEventNames(): array
+    {
+        return Event::orderBy('start_date', 'desc')
+            ->limit(5)
+            ->pluck('title')
+            ->toArray();
+    }
+
+    private function getEventRegistrationCounts(): array
+    {
+        return Event::orderBy('start_date', 'desc')
+            ->limit(5)
+            ->withCount('registrations')
+            ->pluck('registrations_count')
+            ->toArray();
+    }
+
+    private function getEventCheckInCounts(): array
+    {
+        return Event::orderBy('start_date', 'desc')
+            ->limit(5)
+            ->withCount('checkIns')
+            ->pluck('check_ins_count')
+            ->toArray();
     }
 }

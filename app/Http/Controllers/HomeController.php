@@ -29,7 +29,7 @@ class HomeController extends Controller
             'total_events' => Event::count(),
             'upcoming_events' => Event::published()->upcoming()->count(),
             'total_registrations' => Registration::confirmed()->count(),
-            'total_attendees' => CheckIn::distinct('registration_id')->count(),
+            'total_attendees' => CheckIn::select('registration_id')->distinct()->count(),
         ];
 
         return view('welcome', compact('featuredEvents', 'statistics'));

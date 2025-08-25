@@ -1,262 +1,210 @@
-<x-app-layout>
-    <x-slot name="title">Registration Details - {{ $registration->registration_code }} - {{ config('app.name') }}</x-slot>
+@extends('layouts.app')
 
+@section('title', 'Registration Details - ' . config('app.name'))
+
+@section('content')
     <div class="py-8">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Header -->
             <div class="flex justify-between items-center mb-6">
                 <div>
                     <h1 class="text-2xl font-semibold text-gray-900">Registration Details</h1>
-                    <p class="text-gray-600">Code: {{ $registration->registration_code }}</p>
+                    <p class="text-gray-600">Registration #{{ $registration->registration_code }}</p>
                 </div>
                 <div class="flex space-x-3">
-                    <a href="{{ route('admin.registrations.edit', $registration) }}" 
-                       class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    <a href="{{ route('admin.registrations.edit', $registration) }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                         </svg>
                         Edit Registration
                     </a>
-                    <a href="{{ route('admin.registrations.index') }}" 
-                       class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
+                    <a href="{{ route('admin.registrations.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                         </svg>
-                        All Registrations
+                        Back to List
                     </a>
                 </div>
             </div>
-
-            @if(session('success'))
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
-                    {{ session('success') }}
-                </div>
-            @endif
-
-            @if(session('error'))
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
-                    {{ session('error') }}
-                </div>
-            @endif
 
             <!-- Registration Information -->
-            <div class="bg-white rounded-lg shadow p-6 mb-6">
-                <h2 class="text-lg font-medium text-gray-900 mb-4">Registration Information</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Registration Code</label>
-                        <p class="mt-1 text-sm font-mono text-gray-900">{{ $registration->registration_code }}</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Status</label>
-                        <p class="mt-1 text-sm text-gray-900">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                       {{ $registration->status === 'confirmed' ? 'bg-green-100 text-green-800' : 
-                                          ($registration->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') }}">
-                                {{ ucfirst($registration->status) }}
-                            </span>
-                        </p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Registration Date</label>
-                        <p class="mt-1 text-sm text-gray-900">{{ $registration->registration_date->format('M j, Y g:i A') }}</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">QR Code</label>
-                        <p class="mt-1 text-sm text-gray-900">
-                            @if($registration->qr_code_data)
-                                <a href="{{ route('admin.registrations.qr-view', $registration) }}" 
-                                   class="text-blue-600 hover:text-blue-900">View QR Code</a>
-                            @else
-                                <span class="text-gray-500">No QR code generated</span>
-                            @endif
-                        </p>
-                    </div>
-                    @if($registration->notes)
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700">Notes</label>
-                            <p class="mt-1 text-sm text-gray-900">{{ $registration->notes }}</p>
-                        </div>
-                    @endif
+            <div class="bg-white shadow rounded-lg mb-6">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Registration Information</h3>
                 </div>
-            </div>
-
-            <!-- Event Information -->
-            <div class="bg-white rounded-lg shadow p-6 mb-6">
-                <h2 class="text-lg font-medium text-gray-900 mb-4">Event Information</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Event Title</label>
-                        <p class="mt-1 text-sm font-medium text-gray-900">{{ $registration->event->title }}</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Event Date</label>
-                        <p class="mt-1 text-sm text-gray-900">
-                            {{ $registration->event->start_date->format('M j, Y') }}
-                            @if($registration->event->start_time)
-                                at {{ $registration->event->start_time->format('g:i A') }}
-                            @endif
-                        </p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Venue</label>
-                        <p class="mt-1 text-sm text-gray-900">{{ $registration->event->venue }}</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Event Status</label>
-                        <p class="mt-1 text-sm text-gray-900">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                       {{ $registration->event->status === 'published' ? 'bg-green-100 text-green-800' : 
-                                          ($registration->event->status === 'draft' ? 'bg-gray-100 text-gray-800' : 'bg-red-100 text-red-800') }}">
-                                {{ ucfirst($registration->event->status) }}
-                            </span>
-                        </p>
-                    </div>
-                </div>
-                <div class="mt-4">
-                    <a href="{{ route('admin.events.show', $registration->event) }}" 
-                       class="text-blue-600 hover:text-blue-900 text-sm">
-                        View Event Details →
-                    </a>
-                </div>
-            </div>
-
-            <!-- Attendee Information -->
-            <div class="bg-white rounded-lg shadow p-6 mb-6">
-                <h2 class="text-lg font-medium text-gray-900 mb-4">Attendee Information</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Full Name</label>
-                        <p class="mt-1 text-sm text-gray-900">{{ $registration->user->name }}</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Email</label>
-                        <p class="mt-1 text-sm text-gray-900">{{ $registration->user->email }}</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Phone</label>
-                        <p class="mt-1 text-sm text-gray-900">{{ $registration->user->phone ?? 'Not provided' }}</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Organization</label>
-                        <p class="mt-1 text-sm text-gray-900">{{ $registration->user->organization ?? 'Not provided' }}</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Role</label>
-                        <p class="mt-1 text-sm text-gray-900">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                       {{ $registration->user->role === 'admin' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800' }}">
-                                {{ ucfirst($registration->user->role) }}
-                            </span>
-                        </p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Account Status</label>
-                        <p class="mt-1 text-sm text-gray-900">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                       {{ $registration->user->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                {{ $registration->user->is_active ? 'Active' : 'Inactive' }}
-                            </span>
-                        </p>
-                    </div>
-                </div>
-                <div class="mt-4">
-                    <a href="{{ route('admin.attendees.show', $registration->user) }}" 
-                       class="text-blue-600 hover:text-blue-900 text-sm">
-                        View Attendee Profile →
-                    </a>
-                </div>
-            </div>
-
-            <!-- Check-in Information -->
-            <div class="bg-white rounded-lg shadow p-6 mb-6">
-                <h2 class="text-lg font-medium text-gray-900 mb-4">Check-in Information</h2>
-                @if($registration->checkIn)
+                <div class="px-6 py-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Check-in Status</label>
-                            <p class="mt-1 text-sm text-gray-900">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    Checked In
-                                </span>
-                            </p>
+                            <h4 class="font-medium text-gray-700 mb-2">Attendee Details</h4>
+                            <dl class="space-y-2">
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Name</dt>
+                                    <dd class="text-sm text-gray-900">{{ $registration->user->name }}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Email</dt>
+                                    <dd class="text-sm text-gray-900">{{ $registration->user->email }}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Phone</dt>
+                                    <dd class="text-sm text-gray-900">{{ $registration->user->phone ?? 'Not provided' }}</dd>
+                                </div>
+                            </dl>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Check-in Date & Time</label>
-                            <p class="mt-1 text-sm text-gray-900">{{ $registration->checkIn->checked_in_at->format('M j, Y g:i A') }}</p>
+                            <h4 class="font-medium text-gray-700 mb-2">Event Details</h4>
+                            <dl class="space-y-2">
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Event</dt>
+                                    <dd class="text-sm text-gray-900">{{ $registration->event->title }}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Date</dt>
+                                    <dd class="text-sm text-gray-900">{{ $registration->event->start_date->format('M d, Y') }}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Venue</dt>
+                                    <dd class="text-sm text-gray-900">{{ $registration->event->venue }}</dd>
+                                </div>
+                            </dl>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Check-in Method</label>
-                            <p class="mt-1 text-sm text-gray-900">{{ ucfirst($registration->checkIn->check_in_method) }}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Checked in by</label>
-                            <p class="mt-1 text-sm text-gray-900">
-                                @if($registration->checkIn->checkedInBy)
-                                    {{ $registration->checkIn->checkedInBy->name }}
-                                @else
-                                    System
-                                @endif
-                            </p>
-                        </div>
-                        @if($registration->checkIn->notes)
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700">Check-in Notes</label>
-                                <p class="mt-1 text-sm text-gray-900">{{ $registration->checkIn->notes }}</p>
-                            </div>
-                        @endif
                     </div>
-                @else
-                    <div class="text-center py-8">
-                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <h3 class="mt-2 text-sm font-medium text-gray-900">Not Checked In</h3>
-                        <p class="mt-1 text-sm text-gray-500">This attendee has not checked in yet.</p>
-                    </div>
-                @endif
+                </div>
             </div>
 
-            <!-- Actions -->
-            <div class="bg-white rounded-lg shadow p-6">
-                <h2 class="text-lg font-medium text-gray-900 mb-4">Actions</h2>
-                <div class="flex flex-wrap gap-3">
-                    <a href="{{ route('admin.registrations.print-card', $registration) }}" 
-                       target="_blank"
-                       class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
-                        </svg>
-                        Print Registration Card
-                    </a>
-
-                    <form method="POST" action="{{ route('admin.registrations.resend-email', $registration) }}" class="inline">
-                        @csrf
-                        <button type="submit" 
-                                class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                            </svg>
-                            Resend Confirmation Email
-                        </button>
-                    </form>
-
-                    @if(!$registration->checkIn)
-                        <form method="POST" action="{{ route('admin.registrations.destroy', $registration) }}" class="inline" 
-                              onsubmit="return confirm('Are you sure you want to delete this registration? This action cannot be undone.')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" 
-                                    class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                </svg>
-                                Delete Registration
+            <!-- Registration Status & Actions -->
+            <div class="bg-white shadow rounded-lg mb-6">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Status & Actions</h3>
+                </div>
+                <div class="px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                @if($registration->status === 'confirmed') bg-green-100 text-green-800
+                                @elseif($registration->status === 'pending') bg-yellow-100 text-yellow-800
+                                @else bg-red-100 text-red-800
+                                @endif">
+                                {{ ucfirst($registration->status) }}
+                            </span>
+                            <span class="text-sm text-gray-500">
+                                Registered: {{ $registration->created_at->format('M d, Y g:i A') }}
+                            </span>
+                        </div>
+                        <div class="flex space-x-3">
+                            @if($registration->status === 'pending')
+                                <form action="{{ route('admin.registrations.update', $registration) }}" method="POST" class="inline">
+                                    @csrf
+                                    @method('PUT')
+                                    <input type="hidden" name="status" value="confirmed">
+                                    <button type="submit" class="inline-flex items-center px-3 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700">
+                                        Confirm Registration
+                                    </button>
+                                </form>
+                            @endif
+                            <button onclick="resendEmail()" class="inline-flex items-center px-3 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">
+                                Resend Email
                             </button>
-                        </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- QR Code Section -->
+            <div class="bg-white shadow rounded-lg mb-6">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">QR Code</h3>
+                </div>
+                <div class="px-6 py-4">
+                    <div class="flex items-center space-x-4">
+                        <div class="bg-gray-100 p-4 rounded-lg">
+                            {!! QrCode::size(150)->generate($registration->qr_code_data) !!}
+                        </div>
+                        <div class="flex flex-col space-y-2">
+                            <a href="{{ route('admin.registrations.qr-view', $registration) }}" target="_blank" class="inline-flex items-center px-3 py-2 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                                View QR Code
+                            </a>
+                            <a href="{{ route('admin.registrations.qr-code', $registration) }}" class="inline-flex items-center px-3 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                Download QR Code
+                            </a>
+                            <a href="{{ route('admin.registrations.print-card', $registration) }}" target="_blank" class="inline-flex items-center px-3 py-2 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                                </svg>
+                                Print Registration Card
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Check-in History -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Check-in History</h3>
+                </div>
+                <div class="px-6 py-4">
+                    @if($registration->checkIn)
+                        <div class="bg-green-50 border border-green-200 rounded-md p-4">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <div>
+                                    <p class="text-sm font-medium text-green-800">Checked In</p>
+                                    <p class="text-sm text-green-600">
+                                        {{ $registration->checkIn->checked_in_at->format('M d, Y g:i A') }} 
+                                        by {{ $registration->checkIn->checkedInBy->name }}
+                                        ({{ $registration->checkIn->check_in_method }})
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <div class="bg-gray-50 border border-gray-200 rounded-md p-4">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <p class="text-sm text-gray-600">Not checked in yet</p>
+                            </div>
+                        </div>
                     @endif
                 </div>
             </div>
         </div>
     </div>
-</x-app-layout>
+
+    <script>
+        function resendEmail() {
+            if (confirm('Are you sure you want to resend the confirmation email?')) {
+                fetch('{{ route("admin.registrations.resend-email", $registration) }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Email sent successfully!');
+                    } else {
+                        alert('Failed to send email: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while sending the email.');
+                });
+            }
+        }
+    </script>
+@endsection

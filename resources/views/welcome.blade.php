@@ -1,7 +1,9 @@
-<x-app-layout>
-    <x-slot name="title">{{ config('app.name') }} - Professional Development Events</x-slot>
-    <x-slot name="description">Discover and register for upcoming Air Force events, workshops, and networking opportunities.</x-slot>
+@extends('layouts.app')
 
+@section('title', config('app.name') . ' - Professional Development Events')
+@section('description', 'Discover and register for upcoming Air Force events, workshops, and networking opportunities.')
+
+@section('content')
     <!-- Hero Section -->
     <section class="bg-slate-800 text-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
@@ -68,4 +70,4 @@
             @endguest
         </div>
     </section>
-</x-app-layout>
+@endsection

@@ -1,15 +1,49 @@
-<x-app-layout>
-    <x-slot name="title">Admin Dashboard - {{ config('app.name') }}</x-slot>
+@extends('layouts.app')
 
-    @push('head')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <style>
-        .stat-card { background: white; border-radius: 0.75rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .widget { background: white; border-radius: 0.75rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .scroll-area { max-height: 22rem; overflow-y: auto; }
-    </style>
-    @endpush
+@section('title', 'Admin Dashboard - ' . config('app.name'))
 
+@push('head')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+    .stat-card { background: white; border-radius: 0.75rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .widget { background: white; border-radius: 0.75rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .scroll-area { max-height: 22rem; overflow-y: auto; }
+    
+    /* Chart container styles */
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+    
+    .chart-container-large {
+        position: relative;
+        height: 350px;
+        width: 100%;
+    }
+    
+    .chart-container-small {
+        position: relative;
+        height: 250px;
+        width: 100%;
+    }
+    
+    /* Responsive chart adjustments */
+    @media (max-width: 1024px) {
+        .chart-container { height: 250px; }
+        .chart-container-large { height: 300px; }
+        .chart-container-small { height: 200px; }
+    }
+    
+    @media (max-width: 768px) {
+        .chart-container { height: 200px; }
+        .chart-container-large { height: 250px; }
+        .chart-container-small { height: 180px; }
+    }
+</style>
+@endpush
+
+@section('content')
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
             <!-- Quick Actions -->
@@ -44,11 +78,15 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="widget p-6 lg:col-span-2">
                     <h3 class="font-semibold text-gray-900 mb-4">Registration Trends (14 days)</h3>
-                    <canvas id="registrationsChart" height="110"></canvas>
+                    <div class="chart-container-large">
+                        <canvas id="registrationsChart"></canvas>
+                    </div>
                 </div>
                 <div class="widget p-6">
                     <h3 class="font-semibold text-gray-900 mb-4">Check-in Rate by Event</h3>
-                    <canvas id="checkinsChart" height="110"></canvas>
+                    <div class="chart-container">
+                        <canvas id="checkinsChart"></canvas>
+                    </div>
                 </div>
             </div>
 
@@ -56,11 +94,15 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="widget p-6 lg:col-span-2">
                     <h3 class="font-semibold text-gray-900 mb-4">Capacity Utilization</h3>
-                    <canvas id="capacityChart" height="110"></canvas>
+                    <div class="chart-container-large">
+                        <canvas id="capacityChart"></canvas>
+                    </div>
                 </div>
                 <div class="widget p-6">
                     <h3 class="font-semibold text-gray-900 mb-4">Top Events (by registrations)</h3>
-                    <canvas id="popularChart" height="110"></canvas>
+                    <div class="chart-container">
+                        <canvas id="popularChart"></canvas>
+                    </div>
                 </div>
             </div>
 
@@ -98,15 +140,16 @@
                                 <div class="text-xs text-gray-500">{{ $e->formatted_date_range }} • {{ $e->venue }}</div>
                                 <div class="mt-1 flex justify-between text-xs">
                                     <span class="text-gray-500">Registered</span>
-                                    <span class="font-medium">{{ $e->confirmed_registrations_count }}</span>
-                                </div>
-                                <div class="mt-1 flex justify-between text-xs">
-                                    <span class="text-gray-500">Checked-in</span>
-                                    <span class="font-medium">{{ $e->check_ins_count }}</span>
+                                    <span class="font-medium">{{ $e->confirmedRegistrations->count() }}/{{ $e->max_capacity ?: '∞' }}</span>
                                 </div>
                             </div>
                         @empty
-                            <div class="text-sm text-gray-500">No upcoming events</div>
+                            <div class="text-center text-gray-500 py-8">
+                                <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                <p class="text-sm">No upcoming events</p>
+                            </div>
                         @endforelse
                     </div>
                 </div>
@@ -116,95 +159,177 @@
 
     @push('scripts')
     <script>
-        const chartsTheme = {
-            grid: 'rgba(148,163,184,0.15)',
-            text: '#334155',
-            primary: '#dc2626',
-            secondary: '#0ea5e9',
-            accent: '#16a34a',
-        };
-
-        // Registration trends
-        new Chart(document.getElementById('registrationsChart'), {
+        // Registration Trends Chart
+        const registrationsCtx = document.getElementById('registrationsChart').getContext('2d');
+        new Chart(registrationsCtx, {
             type: 'line',
             data: {
-                labels: @json($registrationTrends['labels']),
+                labels: @json($chartData['labels']),
                 datasets: [{
                     label: 'Registrations',
-                    data: @json($registrationTrends['values']),
-                    borderColor: chartsTheme.primary,
-                    backgroundColor: 'rgba(220,38,38,0.1)',
-                    tension: 0.35,
-                    fill: true,
+                    data: @json($chartData['registrations']),
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4,
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
                 }]
             },
             options: {
                 responsive: true,
-                scales: {
-                    x: { grid: { color: chartsTheme.grid } },
-                    y: { grid: { color: chartsTheme.grid }, beginAtZero: true }
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
                 },
-                plugins: { legend: { display: false } }
+                scales: {
+                    y: { 
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                }
             }
         });
 
-        // Check-in rates
-        new Chart(document.getElementById('checkinsChart'), {
-            type: 'bar',
-            data: {
-                labels: @json($checkInRates['labels']),
-                datasets: [{
-                    label: 'Check-in %',
-                    data: @json($checkInRates['values']),
-                    backgroundColor: chartsTheme.accent,
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    x: { grid: { display: false } },
-                    y: { grid: { color: chartsTheme.grid }, beginAtZero: true, max: 100 }
-                },
-                plugins: { legend: { display: false } }
-            }
-        });
-
-        // Capacity utilization
-        new Chart(document.getElementById('capacityChart'), {
-            type: 'bar',
-            data: {
-                labels: @json($capacityUtilization['labels']),
-                datasets: [{
-                    label: 'Utilization %',
-                    data: @json($capacityUtilization['values']),
-                    backgroundColor: chartsTheme.secondary,
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    x: { grid: { display: false } },
-                    y: { grid: { color: chartsTheme.grid }, beginAtZero: true, max: 100 }
-                },
-                plugins: { legend: { display: false } }
-            }
-        });
-
-        // Popular events
-        new Chart(document.getElementById('popularChart'), {
+        // Check-ins Chart
+        const checkinsCtx = document.getElementById('checkinsChart').getContext('2d');
+        new Chart(checkinsCtx, {
             type: 'doughnut',
             data: {
-                labels: @json($popularEvents['labels']),
+                labels: @json($chartData['event_names']),
                 datasets: [{
-                    data: @json($popularEvents['values']),
-                    backgroundColor: [chartsTheme.primary, chartsTheme.secondary, '#f59e0b', '#8b5cf6', '#10b981'],
+                    data: @json($chartData['checkin_rates']),
+                    backgroundColor: [
+                        'rgb(59, 130, 246)',
+                        'rgb(16, 185, 129)',
+                        'rgb(245, 158, 11)',
+                        'rgb(239, 68, 68)',
+                        'rgb(139, 92, 246)'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
                 }]
             },
             options: {
                 responsive: true,
-                plugins: { legend: { position: 'bottom' } }
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { 
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    }
+                },
+                cutout: '60%'
+            }
+        });
+
+        // Capacity Chart
+        const capacityCtx = document.getElementById('capacityChart').getContext('2d');
+        new Chart(capacityCtx, {
+            type: 'bar',
+            data: {
+                labels: @json($chartData['event_names']),
+                datasets: [{
+                    label: 'Capacity Used',
+                    data: @json($chartData['capacity_used']),
+                    backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                    borderColor: 'rgb(59, 130, 246)',
+                    borderWidth: 1
+                }, {
+                    label: 'Capacity Available',
+                    data: @json($chartData['capacity_available']),
+                    backgroundColor: 'rgba(156, 163, 175, 0.8)',
+                    borderColor: 'rgb(156, 163, 175)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { 
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    }
+                },
+                scales: {
+                    x: { 
+                        stacked: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    },
+                    y: { 
+                        stacked: true, 
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                }
+            }
+        });
+
+        // Popular Events Chart
+        const popularCtx = document.getElementById('popularChart').getContext('2d');
+        new Chart(popularCtx, {
+            type: 'bar',
+            data: {
+                labels: @json($chartData['popular_event_names']),
+                datasets: [{
+                    label: 'Registrations',
+                    data: @json($chartData['popular_event_registrations']),
+                    backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                    borderColor: 'rgb(239, 68, 68)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { 
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                }
             }
         });
     </script>
     @endpush
-</x-app-layout>
+@endsection

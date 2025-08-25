@@ -452,7 +452,9 @@ class SettingsService
     public function getSettingValue(string $key, $default = null)
     {
         try {
-            $setting = Setting::where('key', $key)->first();
+            $setting = Setting::where('key', $key)
+                ->where('is_public', true)
+                ->first();
             return $setting ? $setting->display_value : $default;
         } catch (\Exception $e) {
             return $default;

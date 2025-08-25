@@ -47,15 +47,26 @@ class DashboardController extends Controller
         $checkInRates = $this->getCheckInRates();
         $popularEvents = $this->getPopularEvents();
 
+        // Consolidate chart data for the view
+        $chartData = [
+            'labels' => $registrationTrends['labels'],
+            'registrations' => $registrationTrends['values'],
+            'event_names' => $capacityUtilization['labels'],
+            'checkin_rates' => $checkInRates['values'],
+            'capacity_used' => $capacityUtilization['values'],
+            'capacity_available' => $capacityUtilization['labels']->map(function($label, $index) use ($capacityUtilization) {
+                return 100 - $capacityUtilization['values'][$index];
+            })->toArray(),
+            'popular_event_names' => $popularEvents['labels'],
+            'popular_event_registrations' => $popularEvents['values'],
+        ];
+
         return view('admin.dashboard', compact(
             'metrics',
             'recentRegistrations',
             'recentCheckIns',
             'upcomingEvents',
-            'registrationTrends',
-            'capacityUtilization',
-            'checkInRates',
-            'popularEvents'
+            'chartData'
         ));
     }
 

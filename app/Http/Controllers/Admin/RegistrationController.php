@@ -24,83 +24,69 @@ class RegistrationController extends Controller
             $query = Registration::with(['event', 'user', 'checkIn'])
                 ->withCount('checkIn');
 
-        // Search functionality
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->whereHas('user', function ($userQuery) use ($search) {
-                    $userQuery->where('name', 'like', "%{$search}%")
-                              ->orWhere('email', 'like', "%{$search}%");
-                })
-                ->orWhere('registration_code', 'like', "%{$search}%");
-            });
-        }
-
-        // Filter by event
-        if ($request->filled('event_id') && $request->event_id !== 'all') {
-            $query->where('event_id', $request->event_id);
-        }
-
-        // Filter by status
-        if ($request->filled('status') && $request->status !== 'all') {
-            $query->where('status', $request->status);
-        }
-
-        // Filter by date range
-        if ($request->filled('date_from')) {
-            $query->whereDate('registration_date', '>=', $request->date_from);
-        }
-        if ($request->filled('date_to')) {
-            $query->whereDate('registration_date', '<=', $request->date_to);
-        }
-
-        // Filter by check-in status
-        if ($request->filled('checkin_status')) {
-            switch ($request->checkin_status) {
-                case 'checked_in':
-                    $query->whereHas('checkIn');
-                    break;
-                case 'not_checked_in':
-                    $query->whereDoesntHave('checkIn');
-                    break;
+            // Search functionality
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('user', function ($userQuery) use ($search) {
+                        $userQuery->where('name', 'like', "%{$search}%")
+                                  ->orWhere('email', 'like', "%{$search}%");
+                    })
+                    ->orWhere('registration_code', 'like', "%{$search}%");
+                });
             }
-        }
 
-        // Sort
-        $sortBy = $request->get('sort_by', 'registration_date');
-        $sortDir = $request->get('sort_dir', 'desc');
-        $query->orderBy($sortBy, $sortDir);
+            // Filter by event
+            if ($request->filled('event_id') && $request->event_id !== 'all') {
+                $query->where('event_id', $request->event_id);
+            }
 
-        $registrations = $query->paginate(20)->withQueryString();
-        
-        try {
-            $events = Event::published()->orderBy('title')->get();
+            // Filter by status
+            if ($request->filled('status') && $request->status !== 'all') {
+                $query->where('status', $request->status);
+            }
+
+            // Filter by date range
+            if ($request->filled('date_from')) {
+                $query->whereDate('created_at', '>=', $request->date_from);
+            }
+
+            // Sort
+            $sortBy = $request->get('sort_by', 'created_at');
+            $sortDir = $request->get('sort_dir', 'desc');
+            $query->orderBy($sortBy, $sortDir);
+
+            $registrations = $query->paginate(20)->withQueryString();
             
-            // Debug logging
-            Log::info('Admin registrations page loaded', [
-                'events_count' => $events->count(),
-                'registrations_count' => $registrations->count(),
-                'method' => 'adminIndex'
-            ]);
-        } catch (\Exception $e) {
-            // Fallback to all events if published scope fails
-            $events = Event::orderBy('title')->get();
-            Log::warning('Failed to load published events, falling back to all events', [
-                'error' => $e->getMessage(),
-                'method' => 'adminIndex'
-            ]);
-        }
+            try {
+                $events = Event::published()->orderBy('title')->get();
+                
+                // Debug logging
+                Log::info('Admin registrations page loaded', [
+                    'events_count' => $events->count(),
+                    'registrations_count' => $registrations->count(),
+                    'method' => 'adminIndex'
+                ]);
+            } catch (\Exception $e) {
+                // Fallback to all events if published scope fails
+                $events = Event::orderBy('title')->get();
+                Log::warning('Failed to load published events, falling back to all events', [
+                    'error' => $e->getMessage(),
+                    'method' => 'adminIndex'
+                ]);
+            }
 
-        // Ensure we have the required variables
-        if (!isset($events) || $events->isEmpty()) {
-            Log::warning('No events found for admin registrations page', [
-                'method' => 'adminIndex',
-                'fallback' => 'Using empty collection'
-            ]);
-            $events = collect();
-        }
+            // Ensure we have the required variables
+            if (!isset($events) || $events->isEmpty()) {
+                Log::warning('No events found for admin registrations page', [
+                    'method' => 'adminIndex',
+                    'fallback' => 'Using empty collection'
+                ]);
+                $events = collect();
+            }
 
-        return view('admin.registrations.index', compact('registrations', 'events'));
+            return view('admin.registrations.index', compact('registrations', 'events'));
+            
         } catch (\Exception $e) {
             Log::error('Error in admin registrations index', [
                 'error' => $e->getMessage(),
@@ -154,7 +140,7 @@ class RegistrationController extends Controller
             }
 
             // Sort
-            $sortBy = $request->get('sort_by', 'registration_date');
+            $sortBy = $request->get('sort_by', 'created_at');
             $sortDir = $request->get('sort_dir', 'desc');
             $query->orderBy($sortBy, $sortDir);
 

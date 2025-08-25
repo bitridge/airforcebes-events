@@ -3,15 +3,39 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\RegistrationController;
-use App\Http\Controllers\CheckInController;
 use App\Http\Controllers\Admin\EventController as AdminEventController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\AttendeeController;
 use App\Http\Controllers\Admin\RegistrationController as AdminRegistrationController;
 use App\Http\Controllers\Admin\ReportingController;
+use App\Http\Controllers\Admin\CheckInController as AdminCheckInController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('welcome');
+
+// Debug route for testing
+Route::get('/debug', function () {
+    try {
+        $events = \App\Models\Event::published()->upcoming()->with(['creator', 'confirmedRegistrations'])->orderBy('start_date', 'asc')->limit(6)->get();
+        $stats = [
+            'total_events' => \App\Models\Event::count(),
+            'upcoming_events' => \App\Models\Event::published()->upcoming()->count(),
+            'total_registrations' => \App\Models\Registration::confirmed()->count(),
+            'total_attendees' => \App\Models\CheckIn::select('registration_id')->distinct()->count(),
+        ];
+        return response()->json([
+            'events' => $events->toArray(),
+            'statistics' => $stats,
+            'success' => true
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+            'success' => false
+        ]);
+    }
+});
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -47,10 +71,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/registrations/{registration}/qr-view', [RegistrationController::class, 'showQrCode'])->name('registrations.qr-view');
     Route::get('/registrations/{registration}/qr-print', [RegistrationController::class, 'printQrCode'])->name('registrations.qr-print');
     Route::delete('/registrations/{registration}', [RegistrationController::class, 'destroy'])->name('registrations.destroy');
-
-    // Check-in routes
-    Route::get('/check-in', [CheckInController::class, 'index'])->name('checkin.index');
-    Route::post('/check-in', [CheckInController::class, 'store'])->name('checkin.store');
 });
 
 // Admin routes
@@ -62,17 +82,16 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
            Route::post('/events/{event}/export-attendees', [AdminEventController::class, 'exportAttendees'])->name('events.export-attendees');
            Route::post('/events/{event}/export-checkins', [AdminEventController::class, 'exportCheckInReport'])->name('events.export-checkins');
            Route::post('/events/bulk-action', [AdminEventController::class, 'bulkAction'])->name('events.bulk-action');
-               Route::get('/registrations', [AdminRegistrationController::class, 'adminIndex'])->name('registrations.index');
-           Route::get('/events/{event}/registrations', [AdminRegistrationController::class, 'eventRegistrations'])->name('events.registrations');
-           
-           // Registration management routes
+               // Registration management routes
+           Route::get('/registrations', [AdminRegistrationController::class, 'adminIndex'])->name('registrations.index');
+           Route::get('/events/{event}/registrations', [AdminRegistrationController::class, 'eventRegistrations'])->name('registrations.event');
            Route::get('/registrations/{registration}', [AdminRegistrationController::class, 'show'])->name('registrations.show');
            Route::get('/registrations/{registration}/edit', [AdminRegistrationController::class, 'edit'])->name('registrations.edit');
            Route::put('/registrations/{registration}', [AdminRegistrationController::class, 'update'])->name('registrations.update');
            Route::delete('/registrations/{registration}', [AdminRegistrationController::class, 'destroy'])->name('registrations.destroy');
            Route::post('/registrations/{registration}/resend-email', [AdminRegistrationController::class, 'resendEmail'])->name('registrations.resend-email');
            Route::post('/registrations/bulk-action', [AdminRegistrationController::class, 'bulkAction'])->name('registrations.bulk-action');
-           Route::post('/registrations/export-csv', [AdminRegistrationController::class, 'exportCsv'])->name('registrations.export-csv');
+           Route::post('/registrations/export-csv', [AdminRegistrationController::class, 'exportCsv'])->name('registrations.export');
            Route::post('/registrations/export-pdf', [AdminRegistrationController::class, 'exportPdf'])->name('registrations.export-pdf');
            
                        // QR Code routes
@@ -116,14 +135,14 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
            Route::post('/reports/export-attendee-analytics', [ReportingController::class, 'exportAttendeeAnalytics'])->name('reports.export-attendee-analytics');
     
     // Check-in routes
-    Route::get('/check-in', [CheckInController::class, 'index'])->name('check-in.index');
-    Route::get('/check-in/manual', [CheckInController::class, 'manual'])->name('check-in.manual');
-    Route::post('/check-in/scan', [CheckInController::class, 'scanQrCode'])->name('check-in.scan');
-    Route::post('/check-in/code', [CheckInController::class, 'checkInByCode'])->name('check-in.code');
-    Route::post('/check-in/bulk', [CheckInController::class, 'bulkCheckIn'])->name('check-in.bulk');
-    Route::get('/check-in/search', [CheckInController::class, 'search'])->name('check-in.search');
-    Route::get('/events/{event}/stats', [CheckInController::class, 'eventStats'])->name('events.stats');
-    Route::get('/events/{event}/export', [CheckInController::class, 'exportReport'])->name('events.export');
+    Route::get('/check-in', [AdminCheckInController::class, 'index'])->name('check-in.index');
+    Route::get('/check-in/manual', [AdminCheckInController::class, 'manual'])->name('check-in.manual');
+    Route::post('/check-in/scan', [AdminCheckInController::class, 'scanQrCode'])->name('check-in.scan');
+    Route::post('/check-in/code', [AdminCheckInController::class, 'checkInByCode'])->name('check-in.code');
+    Route::post('/check-in/bulk', [AdminCheckInController::class, 'bulkCheckIn'])->name('check-in.bulk');
+    Route::get('/check-in/search', [AdminCheckInController::class, 'search'])->name('check-in.search');
+    Route::get('/events/{event}/stats', [AdminCheckInController::class, 'eventStats'])->name('events.stats');
+    Route::get('/events/{event}/export', [AdminCheckInController::class, 'exportReport'])->name('events.export');
 });
 
 require __DIR__.'/auth.php';

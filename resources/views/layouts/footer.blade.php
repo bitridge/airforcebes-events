@@ -30,7 +30,9 @@
                     <li><a href="{{ route('events.index') }}" class="hover:text-white transition-colors">Browse Events</a></li>
                     @auth
                         <li><a href="{{ route('registrations.index') }}" class="hover:text-white transition-colors">My Registrations</a></li>
-                        <li><a href="{{ route('checkin.index') }}" class="hover:text-white transition-colors">Check-in</a></li>
+                        @if(auth()->user()->isAdmin())
+                            <li><a href="{{ route('admin.check-in.index') }}" class="hover:text-white transition-colors">Check-in Station</a></li>
+                        @endif
                         <li><a href="{{ route('profile.show') }}" class="hover:text-white transition-colors">Profile</a></li>
                     @else
                         <li><a href="{{ route('register') }}" class="hover:text-white transition-colors">Create Account</a></li>

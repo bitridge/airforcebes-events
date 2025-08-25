@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Registration;
 use App\Models\CheckIn;
@@ -40,7 +41,7 @@ class CheckInController extends Controller
     public function manual(): View
     {
         // Get events happening today or recently for context
-        $activeEvents = Event::published()
+        $events = Event::published()
             ->where(function ($query) {
                 $query->whereDate('start_date', '<=', today()->addDays(1))
                       ->whereDate('end_date', '>=', today()->subDays(1));
@@ -49,7 +50,7 @@ class CheckInController extends Controller
             ->orderBy('start_date', 'asc')
             ->get();
 
-        return view('admin.check-in.manual', compact('activeEvents'));
+        return view('admin.check-in.manual', compact('events'));
     }
 
     /**

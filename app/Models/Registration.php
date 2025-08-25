@@ -456,7 +456,7 @@ class Registration extends Model
      */
     public function getCheckInUrl(): string
     {
-        return route('checkin.index', ['code' => $this->registration_code]);
+        return route('admin.check-in.index', ['code' => $this->registration_code]);
     }
 
     /**

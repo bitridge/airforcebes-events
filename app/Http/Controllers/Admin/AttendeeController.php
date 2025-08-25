@@ -24,28 +24,23 @@ class AttendeeController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%")
-                  ->orWhere('organization', 'like', "%{$search}%");
+                  ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
-        // Filter by role
-        if ($request->filled('role') && $request->role !== 'all') {
-            $query->where('role', $request->role);
+        // Filter by event
+        if ($request->filled('event_id')) {
+            $query->whereHas('registrations', function ($q) use ($request) {
+                $q->where('event_id', $request->event_id);
+            });
         }
 
-        // Filter by registration count
-        if ($request->filled('registration_count')) {
-            switch ($request->registration_count) {
-                case '1':
-                    $query->has('registrations', '=', 1);
-                    break;
-                case '2-5':
-                    $query->has('registrations', '>=', 2)->has('registrations', '<=', 5);
-                    break;
-                case '6+':
-                    $query->has('registrations', '>=', 6);
-                    break;
+        // Filter by status
+        if ($request->filled('status')) {
+            if ($request->status === 'active') {
+                $query->where('is_active', true);
+            } elseif ($request->status === 'inactive') {
+                $query->where('is_active', false);
             }
         }
 
@@ -55,8 +50,11 @@ class AttendeeController extends Controller
         $query->orderBy($sortBy, $sortDir);
 
         $attendees = $query->paginate(20)->withQueryString();
+        
+        // Get events for filter dropdown
+        $events = Event::select('id', 'title')->orderBy('title')->get();
 
-        return view('admin.attendees.index', compact('attendees'));
+        return view('admin.attendees.index', compact('attendees', 'events'));
     }
 
     public function show(User $attendee): View

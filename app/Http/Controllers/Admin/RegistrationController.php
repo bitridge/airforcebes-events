@@ -15,6 +15,7 @@ use Illuminate\View\View;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class RegistrationController extends Controller
@@ -692,6 +693,23 @@ class RegistrationController extends Controller
             $csvData = array_map('str_getcsv', file($file->getPathname()));
             $headers = array_shift($csvData); // Remove header row
 
+            // Validate CSV structure
+            if (empty($csvData) || count($csvData) === 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'CSV file appears to be empty or contains no data rows.',
+                ], 400);
+            }
+
+            Log::info('CSV import started', [
+                'event_id' => $event->id,
+                'event_title' => $event->title,
+                'total_rows' => count($csvData),
+                'headers' => $headers,
+                'mapping' => $mapping,
+                'admin_user_id' => auth()->id(),
+            ]);
+
             $imported = 0;
             $skipped = 0;
             $errors = [];
@@ -712,7 +730,13 @@ class RegistrationController extends Controller
 
                     // Validate required fields
                     if (empty($firstName) || empty($lastName) || empty($email)) {
-                        $errors[] = "Row " . ($rowIndex + 2) . ": Missing required fields";
+                        $errors[] = "Row " . ($rowIndex + 2) . ": Missing required fields (First Name: '{$firstName}', Last Name: '{$lastName}', Email: '{$email}')";
+                        continue;
+                    }
+
+                    // Validate email format
+                    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                        $errors[] = "Row " . ($rowIndex + 2) . ": Invalid email format: '{$email}'";
                         continue;
                     }
 
@@ -722,9 +746,25 @@ class RegistrationController extends Controller
                         [
                             'name' => $firstName . ' ' . $lastName,
                             'role' => 'attendee',
+                            'password' => bcrypt($this->generateRandomPassword()),
                             'email_verified_at' => now(),
                         ]
                     );
+
+                    // Log user creation/retrieval
+                    if ($user->wasRecentlyCreated) {
+                        Log::info('New user created during CSV import', [
+                            'email' => $email,
+                            'name' => $firstName . ' ' . $lastName,
+                            'row' => $rowIndex + 2
+                        ]);
+                    } else {
+                        Log::info('Existing user found during CSV import', [
+                            'email' => $email,
+                            'user_id' => $user->id,
+                            'row' => $rowIndex + 2
+                        ]);
+                    }
 
                     // Check if registration already exists for this event
                     $existingRegistration = Registration::where('event_id', $event->id)
@@ -753,6 +793,14 @@ class RegistrationController extends Controller
                         'emergency_contact_phone' => trim($row[$mapping['emergency_contact_phone'] ?? ''] ?? ''),
                         'notes' => trim($row[$mapping['notes'] ?? ''] ?? ''),
                         'registration_date' => now(),
+                    ]);
+
+                    Log::info('Registration created during CSV import', [
+                        'registration_id' => $registration->id,
+                        'user_id' => $user->id,
+                        'email' => $email,
+                        'registration_code' => $registration->registration_code,
+                        'row' => $rowIndex + 2
                     ]);
 
                     $imported++;
@@ -826,5 +874,19 @@ class RegistrationController extends Controller
             'registration_code' => $this->generateRegistrationCode(),
             'timestamp' => now()->timestamp,
         ]);
+    }
+
+    /**
+     * Generate a random password for imported users.
+     */
+    private function generateRandomPassword(): string
+    {
+        // Generate a secure random password
+        $password = Str::random(12);
+        
+        // Ensure it contains at least one uppercase, lowercase, number, and special character
+        $password = str_shuffle($password . 'A' . 'a' . '1' . '!');
+        
+        return $password;
     }
 }

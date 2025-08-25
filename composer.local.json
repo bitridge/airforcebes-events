@@ -1,0 +1,20 @@
+{
+    "config": {
+        "platform": {
+            "php": "8.2.0"
+        },
+        "platform-check": false,
+        "optimize-autoloader": false,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "@php artisan key:generate --ansi",
+            "@php artisan migrate --force --ansi"
+        ],
+        "post-update-cmd": [
+            "@php artisan migrate --force --ansi"
+        ]
+    }
+}

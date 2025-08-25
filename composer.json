@@ -9,7 +9,7 @@
     ],
     "license": "MIT",
     "require": {
-        "php": "^8.2",
+        "php": ">=8.2.0",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
         "maatwebsite/excel": "^3.1",
@@ -64,6 +64,27 @@
         "test": [
             "@php artisan config:clear --ansi",
             "@php artisan test"
+        ],
+        "install-local": [
+            "composer install --ignore-platform-reqs",
+            "@php artisan key:generate --ansi",
+            "@php artisan migrate --force --ansi"
+        ],
+        "install-production": [
+            "composer install --no-dev --optimize-autoloader --ignore-platform-reqs",
+            "@php artisan config:cache --ansi",
+            "@php artisan route:cache --ansi",
+            "@php artisan view:cache --ansi"
+        ],
+        "update-local": [
+            "composer update --ignore-platform-reqs",
+            "@php artisan migrate --force --ansi"
+        ],
+        "update-production": [
+            "composer update --no-dev --optimize-autoloader --ignore-platform-reqs",
+            "@php artisan config:cache --ansi",
+            "@php artisan route:cache --ansi",
+            "@php artisan view:cache --ansi"
         ]
     },
     "extra": {
@@ -78,7 +99,11 @@
         "allow-plugins": {
             "pestphp/pest-plugin": true,
             "php-http/discovery": true
-        }
+        },
+        "platform": {
+            "php": "8.2.0"
+        },
+        "platform-check": false
     },
     "minimum-stability": "stable",
     "prefer-stable": true

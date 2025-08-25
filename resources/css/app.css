@@ -34,3 +34,35 @@
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 150ms;
 }
+
+/* Force 24-hour time format */
+.time-24h {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+.time-24h::-webkit-datetime-edit-hour-field,
+.time-24h::-webkit-datetime-edit-minute-field {
+    -webkit-appearance: none;
+}
+
+.time-24h::-webkit-calendar-picker-indicator {
+    display: none;
+}
+
+/* Ensure time inputs show 24-hour format */
+input[type="time"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+input[type="time"]::-webkit-datetime-edit-hour-field,
+input[type="time"]::-webkit-datetime-edit-minute-field {
+    -webkit-appearance: none;
+}
+
+input[type="time"]::-webkit-calendar-picker-indicator {
+    display: none;
+}

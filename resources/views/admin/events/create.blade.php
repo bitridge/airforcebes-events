@@ -99,9 +99,9 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label for="start_time" class="block text-sm font-medium text-gray-700">Start Time</label>
-                                <input type="time" id="start_time" name="start_time" value="{{ old('start_time') }}" step="900"
-                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                       pattern="[0-9]{2}:[0-9]{2}" placeholder="09:00">
+                                <input type="time" id="start_time" name="start_time" value="{{ old('start_time') }}"
+                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm time-24h"
+                                       placeholder="09:00">
                                 <p class="mt-1 text-xs text-gray-500">Use 24-hour format (e.g., 09:00, 14:30)</p>
                                 @error('start_time')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -110,9 +110,9 @@
                             
                             <div>
                                 <label for="end_time" class="block text-sm font-medium text-gray-700">End Time</label>
-                                <input type="time" id="end_time" name="end_time" value="{{ old('end_time') }}" step="900"
-                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                       pattern="[0-9]{2}:[0-9]{2}" placeholder="17:00">
+                                <input type="time" id="end_time" name="end_time" value="{{ old('end_time') }}"
+                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm time-24h"
+                                       placeholder="17:00">
                                 <p class="mt-1 text-xs text-gray-500">Use 24-hour format (e.g., 09:00, 14:30)</p>
                                 @error('end_time')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -213,23 +213,19 @@
             document.getElementById('slug').value = slug;
         });
 
-        // Handle time inputs to ensure proper format
+        // Ensure time inputs use 24-hour format
         document.addEventListener('DOMContentLoaded', function() {
-            const startTimeInput = document.getElementById('start_time');
-            const endTimeInput = document.getElementById('end_time');
-
-            // Force 24-hour format display
-            function force24HourFormat(input) {
-                // Set the input to use 24-hour format
+            const timeInputs = document.querySelectorAll('input[type="time"]');
+            
+            timeInputs.forEach(function(input) {
+                // Force 24-hour format
                 input.setAttribute('data-format', '24h');
                 
-                // Add event listener to format on input change
-                input.addEventListener('input', function() {
+                // Ensure value is in 24-hour format on blur
+                input.addEventListener('blur', function() {
                     if (this.value) {
-                        // Ensure the value is in HH:MM format
+                        // Convert any 12-hour format to 24-hour
                         let time = this.value;
-                        
-                        // If it's in 12-hour format, convert it
                         if (time.includes('AM') || time.includes('PM')) {
                             const [hours, minutes] = time.split(':');
                             let hour = parseInt(hours);
@@ -244,57 +240,8 @@
                             time = `${hour.toString().padStart(2, '0')}:${minute}`;
                             this.value = time;
                         }
-                        
-                        // Validate format
-                        if (!/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(time)) {
-                            this.setCustomValidity('Please use 24-hour format (HH:MM)');
-                        } else {
-                            this.setCustomValidity('');
-                        }
                     }
                 });
-            }
-
-            // Apply 24-hour format to both inputs
-            force24HourFormat(startTimeInput);
-            force24HourFormat(endTimeInput);
-
-            // Format on blur (when user leaves the field)
-            startTimeInput.addEventListener('blur', function() {
-                if (this.value && !/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(this.value)) {
-                    this.setCustomValidity('Please use 24-hour format (HH:MM)');
-                }
-            });
-            
-            endTimeInput.addEventListener('blur', function() {
-                if (this.value && !/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(this.value)) {
-                    this.setCustomValidity('Please use 24-hour format (HH:MM)');
-                }
-            });
-
-            // Format on form submit
-            document.querySelector('form').addEventListener('submit', function(e) {
-                // Validate both time inputs before submit
-                const startTime = startTimeInput.value;
-                const endTime = endTimeInput.value;
-                
-                if (startTime && !/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(startTime)) {
-                    e.preventDefault();
-                    startTimeInput.setCustomValidity('Start time must be in HH:MM format');
-                    startTimeInput.reportValidity();
-                    return false;
-                }
-                
-                if (endTime && !/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(endTime)) {
-                    e.preventDefault();
-                    endTimeInput.setCustomValidity('End time must be in HH:MM format');
-                    endTimeInput.reportValidity();
-                    return false;
-                }
-                
-                // Clear any custom validation messages
-                startTimeInput.setCustomValidity('');
-                endTimeInput.setCustomValidity('');
             });
         });
     </script>

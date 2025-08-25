@@ -78,7 +78,7 @@
                                                 </span>
                                             </div>
                                             <div>
-                                                <div class="text-sm font-medium text-gray-900">{{ $attendee->name }}</div>
+                                                <a href="{{ route('admin.attendees.show', $attendee) }}" class="text-sm font-medium text-gray-900 hover:text-indigo-600 hover:underline">{{ $attendee->name }}</a>
                                                 <div class="text-sm text-gray-500">ID: {{ $attendee->id }}</div>
                                             </div>
                                         </div>
@@ -109,7 +109,6 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div class="flex space-x-2">
-                                            <a href="{{ route('admin.attendees.show', $attendee) }}" class="text-indigo-600 hover:text-indigo-900">View</a>
                                             <a href="{{ route('admin.attendees.edit', $attendee) }}" class="text-green-600 hover:text-green-900">Edit</a>
                                         </div>
                                     </td>

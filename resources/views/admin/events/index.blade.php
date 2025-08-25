@@ -77,7 +77,7 @@
                                                 </div>
                                             @endif
                                             <div>
-                                                <div class="text-sm font-medium text-gray-900">{{ $event->title }}</div>
+                                                <a href="{{ route('admin.events.show', $event) }}" class="text-sm font-medium text-gray-900 hover:text-indigo-600 hover:underline">{{ $event->title }}</a>
                                                 <div class="text-sm text-gray-500">{{ Str::limit($event->description, 50) }}</div>
                                             </div>
                                         </div>
@@ -104,7 +104,6 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div class="flex space-x-2">
-                                            <a href="{{ route('admin.events.show', $event) }}" class="text-indigo-600 hover:text-indigo-900">View</a>
                                             <a href="{{ route('admin.events.edit', $event) }}" class="text-green-600 hover:text-green-900">Edit</a>
                                             <a href="{{ route('admin.registrations.event', $event) }}" class="text-blue-600 hover:text-blue-900">Registrations</a>
                                         </div>

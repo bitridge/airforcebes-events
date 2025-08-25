@@ -113,7 +113,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div>
-                                            <div class="text-sm font-medium text-gray-900">{{ $registration->user->name }}</div>
+                                            <a href="{{ route('admin.attendees.show', $registration->user) }}" class="text-sm font-medium text-gray-900 hover:text-indigo-600 hover:underline">{{ $registration->user->name }}</a>
                                             <div class="text-sm text-gray-500">{{ $registration->user->email }}</div>
                                             @if($registration->user->phone)
                                                 <div class="text-sm text-gray-500">{{ $registration->user->phone }}</div>
@@ -122,7 +122,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div>
-                                            <div class="text-sm font-medium text-gray-900">{{ $registration->event->title }}</div>
+                                            <a href="{{ route('admin.events.show', $registration->event) }}" class="text-sm font-medium text-gray-900 hover:text-indigo-600 hover:underline">{{ $registration->event->title }}</a>
                                             <div class="text-sm text-gray-500">{{ $registration->event->formatted_date_range }}</div>
                                         </div>
                                     </td>
@@ -144,7 +144,6 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div class="flex space-x-2">
-                                            <a href="{{ route('admin.registrations.show', $registration) }}" class="text-indigo-600 hover:text-indigo-900">View</a>
                                             <a href="{{ route('admin.registrations.edit', $registration) }}" class="text-green-600 hover:text-green-900">Edit</a>
                                             <a href="{{ route('admin.registrations.qr-view', $registration) }}" class="text-blue-600 hover:text-blue-900">QR Code</a>
                                         </div>

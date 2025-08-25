@@ -315,17 +315,38 @@ class Registration extends Model
     }
 
     /**
+     * Generate security hash for QR code.
+     */
+    private function generateSecurityHash(): string
+    {
+        $data = [
+            $this->id,
+            $this->registration_code,
+            $this->event_id,
+            $this->user_id,
+            $this->registration_date?->timestamp ?? now()->timestamp,
+            'af-events-qr-security-2024', // SECURITY_SALT from QRCodeService
+            config('app.key'),
+        ];
+
+        return hash('sha256', implode('|', $data));
+    }
+
+    /**
      * Generate QR code data.
      */
     public function generateQRCodeData(): string
     {
         return json_encode([
-            'type' => 'registration',
+            'type' => 'airforce_event_registration',
+            'version' => '2.0',
             'registration_id' => $this->id ?? 'pending',
             'registration_code' => $this->registration_code,
             'event_id' => $this->event_id,
             'user_id' => $this->user_id,
-            'timestamp' => now()->toISOString(),
+            'security_hash' => $this->qr_security_hash ?? $this->generateSecurityHash(),
+            'generated_at' => now()->toISOString(),
+            'expires_at' => now()->addYears(5)->toISOString(), // QR codes valid for 5 years
         ]);
     }
 
@@ -390,36 +411,82 @@ class Registration extends Model
     {
         // Must be confirmed
         if (!$this->isConfirmed()) {
+            Log::info('Registration cannot check in - not confirmed', [
+                'registration_id' => $this->id,
+                'status' => $this->status,
+            ]);
             return false;
         }
 
         // Can't check in if already checked in
         if ($this->isCheckedIn()) {
+            Log::info('Registration cannot check in - already checked in', [
+                'registration_id' => $this->id,
+            ]);
             return false;
         }
 
         // Check event status
         if (!$this->event) {
+            Log::info('Registration cannot check in - no event', [
+                'registration_id' => $this->id,
+            ]);
             return false;
         }
 
         // Event should be published
         if (!$this->event->isPublished()) {
+            Log::info('Registration cannot check in - event not published', [
+                'registration_id' => $this->id,
+                'event_status' => $this->event->status,
+            ]);
             return false;
         }
 
         // Can check in if event is in progress or about to start (within 2 hours)
         if ($this->event->isInProgress()) {
+            Log::info('Registration can check in - event in progress', [
+                'registration_id' => $this->id,
+                'event_id' => $this->event->id,
+            ]);
             return true;
         }
 
         if ($this->event->hasStarted()) {
+            Log::info('Registration can check in - event has started', [
+                'registration_id' => $this->id,
+                'event_id' => $this->event->id,
+            ]);
             return true;
         }
 
         // Allow check-in up to 2 hours before event starts
-        $startDateTime = $this->event->start_date->setTimeFromTimeString($this->event->start_time->format('H:i:s'));
-        return now()->gte($startDateTime->subHours(2));
+        try {
+            $startDateTime = $this->event->start_date->setTimeFromTimeString($this->event->start_time->format('H:i:s'));
+            $canCheckIn = now()->gte($startDateTime->subHours(2));
+            
+            Log::info('Registration check-in time check', [
+                'registration_id' => $this->id,
+                'event_id' => $this->event->id,
+                'start_date' => $this->event->start_date,
+                'start_time' => $this->event->start_time,
+                'start_datetime' => $startDateTime,
+                'two_hours_before' => $startDateTime->subHours(2),
+                'now' => now(),
+                'can_check_in' => $canCheckIn,
+            ]);
+            
+            return $canCheckIn;
+        } catch (\Exception $e) {
+            Log::error('Error checking registration check-in time', [
+                'registration_id' => $this->id,
+                'event_id' => $this->event->id,
+                'error' => $e->getMessage(),
+                'start_date' => $this->event->start_date,
+                'start_time' => $this->event->start_time,
+            ]);
+            return false;
+        }
     }
 
     /**

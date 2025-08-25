@@ -206,13 +206,26 @@
 
         async function processCheckin(code) {
             try {
-                const response = await fetch('{{ route("admin.check-in.code") }}', {
+                // Determine if this is a QR code scan or manual code entry
+                // QR codes contain JSON data, manual codes are just strings
+                let isQRCode = false;
+                try {
+                    JSON.parse(code);
+                    isQRCode = true;
+                } catch (e) {
+                    isQRCode = false;
+                }
+
+                const route = isQRCode ? '{{ route("admin.check-in.scan") }}' : '{{ route("admin.check-in.code") }}';
+                const payload = isQRCode ? { qr_data: code } : { registration_code: code };
+
+                const response = await fetch(route, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                     },
-                    body: JSON.stringify({ code: code })
+                    body: JSON.stringify(payload)
                 });
 
                 const result = await response.json();

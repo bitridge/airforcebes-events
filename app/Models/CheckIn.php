@@ -283,6 +283,9 @@ class CheckIn extends Model
                 'registration_id' => $registration->id,
                 'method' => $method,
                 'reason' => 'Cannot check in',
+                'registration_status' => $registration->status,
+                'event_status' => $registration->event?->status,
+                'can_check_in_result' => $registration->canCheckIn(),
             ]);
             return null;
         }
@@ -304,18 +307,33 @@ class CheckIn extends Model
             'checked_in_by' => $checkedInBy?->id,
         ]);
 
-        if ($checkIn->save()) {
-            Log::info('Check-in recorded successfully', [
-                'check_in_id' => $checkIn->id,
+        try {
+            if ($checkIn->save()) {
+                Log::info('Check-in recorded successfully', [
+                    'check_in_id' => $checkIn->id,
+                    'registration_id' => $registration->id,
+                    'method' => $method,
+                    'checked_in_by' => $checkedInBy?->id,
+                ]);
+                
+                return $checkIn;
+            } else {
+                Log::error('Failed to save check-in record', [
+                    'registration_id' => $registration->id,
+                    'method' => $method,
+                    'check_in_data' => $checkIn->toArray(),
+                ]);
+                return null;
+            }
+        } catch (\Exception $e) {
+            Log::error('Exception while saving check-in record', [
                 'registration_id' => $registration->id,
                 'method' => $method,
-                'checked_in_by' => $checkedInBy?->id,
+                'error' => $e->getMessage(),
+                'check_in_data' => $checkIn->toArray(),
             ]);
-            
-            return $checkIn;
+            return null;
         }
-
-        return null;
     }
 
     /**

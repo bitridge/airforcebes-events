@@ -4,7 +4,7 @@
 
 @section('content')
 <style>
-    /* Fallback CSS for tabs - ensures content is visible even if JavaScript fails */
+    /* Tab system CSS */
     .tab-content {
         display: none;
     }
@@ -13,17 +13,21 @@
     }
     /* Show general tab by default */
     .tab-content[data-tab="general"] {
-        display: block;
+        display: block !important;
     }
     /* Ensure tab buttons are clickable */
     .tab-button {
         cursor: pointer;
         user-select: none;
     }
-    /* Fallback tab styles */
+    /* Active tab styles */
     .tab-button.active {
         border-bottom-color: #3b82f6 !important;
         color: #2563eb !important;
+    }
+    /* Ensure general tab is always visible initially */
+    .tab-content[data-tab="general"] {
+        display: block !important;
     }
 </style>
 
@@ -38,6 +42,8 @@
             {{ $error }}
         </div>
     @endif
+
+
 
     <!-- Settings Tabs -->
     <div id="settings-container" 
@@ -337,7 +343,7 @@
             </div>
 
             <!-- System Settings Tab -->
-            <div x-show="activeTab === 'system'" data-tab="system" class="tab-content space-y-6">
+            <div data-tab="system" class="tab-content space-y-6">
                 <div class="border-b border-gray-200 pb-4">
                     <h3 class="text-lg font-medium text-gray-900">System Settings</h3>
                     <p class="text-sm text-gray-600 mt-1">System configuration and maintenance</p>
@@ -614,9 +620,9 @@
         }
     });
 
-    // Fallback Tab System for Production
+    // Tab System for Production
     function initFallbackTabs() {
-        console.log('Initializing fallback tab system');
+        console.log('Initializing tab system');
         
         // Hide all tab content initially
         const tabContents = document.querySelectorAll('.tab-content');
@@ -644,6 +650,8 @@
         
         // Update initial tab button state
         updateTabButtonState('general');
+        
+        console.log('Tab system initialized successfully');
     }
 
     function showTab(tabName) {
@@ -651,6 +659,7 @@
         
         // Hide all tab content
         const tabContents = document.querySelectorAll('.tab-content');
+        console.log('Found tab contents:', tabContents.length);
         tabContents.forEach(content => {
             content.style.display = 'none';
         });
@@ -659,6 +668,9 @@
         const selectedTab = document.querySelector(`[data-tab="${tabName}"]`);
         if (selectedTab) {
             selectedTab.style.display = 'block';
+            console.log('Tab content shown:', tabName);
+        } else {
+            console.error('Tab content not found:', tabName);
         }
         
         // Update tab button styles
@@ -679,33 +691,14 @@
         });
     }
 
-    // Initialize fallback system if Alpine.js is not available
+        // Initialize tab system immediately
     document.addEventListener('DOMContentLoaded', function() {
-        // Check if Alpine.js is loaded
-        if (typeof Alpine === 'undefined') {
-            console.log('Alpine.js not detected, using fallback tab system');
-            initFallbackTabs();
-        } else {
-            console.log('Alpine.js detected, tabs should work normally');
-            
-            // Test if Alpine.js is actually working
-            setTimeout(function() {
-                const generalTab = document.querySelector('[x-show="activeTab === \'general\'"]');
-                if (generalTab && generalTab.style.display === 'none') {
-                    console.log('Alpine.js detected but tabs not working, forcing fallback system');
-                    initFallbackTabs();
-                }
-            }, 1000);
-        }
+        console.log('DOM loaded, initializing tab system');
         
-        // Additional fallback: if tabs still don't work after 3 seconds, force fallback
+        // Small delay to ensure DOM is fully ready
         setTimeout(function() {
-            const generalTab = document.querySelector('[x-show="activeTab === \'general\'"]');
-            if (generalTab && generalTab.style.display === 'none') {
-                console.log('Tabs not working after timeout, forcing fallback system');
-                initFallbackTabs();
-            }
-        }, 3000);
-});
+            initFallbackTabs();
+        }, 100);
+    });
 </script>
 @endsection

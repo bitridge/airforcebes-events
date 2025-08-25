@@ -42,6 +42,8 @@ class SettingsController extends Controller
         }
     }
 
+
+
     /**
      * Update settings for a specific group
      */

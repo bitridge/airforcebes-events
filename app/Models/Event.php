@@ -50,8 +50,8 @@ class Event extends Model
         return [
             'start_date' => 'date',
             'end_date' => 'date',
-            'start_time' => 'datetime:H:i',
-            'end_time' => 'datetime:H:i',
+            'start_time' => 'string',
+            'end_time' => 'string',
             'registration_deadline' => 'datetime',
             'max_capacity' => 'integer',
             'tags' => 'array',
@@ -457,7 +457,7 @@ class Event extends Model
     protected function formattedStartTime(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->start_time?->format('g:i A')
+            get: fn () => $this->start_time ? Carbon::createFromFormat('H:i:s', $this->start_time)->format('g:i A') : null
         );
     }
 
@@ -467,7 +467,7 @@ class Event extends Model
     protected function formattedEndTime(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->end_time?->format('g:i A')
+            get: fn () => $this->end_time ? Carbon::createFromFormat('H:i:s', $this->end_time)->format('g:i A') : null
         );
     }
 
@@ -480,8 +480,8 @@ class Event extends Model
             get: function () {
                 if (!$this->start_time) return null;
                 
-                $start = $this->start_time->format('g:i A');
-                $end = $this->end_time?->format('g:i A');
+                $start = Carbon::createFromFormat('H:i:s', $this->start_time)->format('g:i A');
+                $end = $this->end_time ? Carbon::createFromFormat('H:i:s', $this->end_time)->format('g:i A') : null;
                 
                 return $end ? "{$start} - {$end}" : $start;
             }
@@ -802,19 +802,60 @@ class Event extends Model
     }
 
     /**
+     * Get formatted start time.
+     */
+    public function getFormattedStartTimeAttribute(): string
+    {
+        return $this->start_time ?: '';
+    }
+
+    /**
+     * Get formatted end time.
+     */
+    public function getFormattedEndTimeAttribute(): string
+    {
+        return $this->end_time ?: '';
+    }
+
+    /**
+     * Get start datetime as Carbon instance.
+     */
+    public function getStartDateTimeAttribute(): ?Carbon
+    {
+        if (!$this->start_date || !$this->start_time) {
+            return null;
+        }
+
+        return Carbon::createFromFormat(
+            'Y-m-d H:i:s',
+            $this->start_date->format('Y-m-d') . ' ' . $this->start_time,
+            config('app.timezone')
+        );
+    }
+
+    /**
+     * Get end datetime as Carbon instance.
+     */
+    public function getEndDateTimeAttribute(): ?Carbon
+    {
+        if (!$this->end_date || !$this->end_time) {
+            return null;
+        }
+
+        return Carbon::createFromFormat(
+            'Y-m-d H:i:s',
+            $this->end_date->format('Y-m-d') . ' ' . $this->end_time,
+            config('app.timezone')
+        );
+    }
+
+    /**
      * Check if event has started.
      */
     public function hasStarted(): bool
     {
-        if (!$this->start_date || !$this->start_time) {
-            return false;
-        }
-
-        $startDateTime = Carbon::createFromFormat('Y-m-d H:i:s', 
-            $this->start_date->format('Y-m-d') . ' ' . $this->start_time->format('H:i:s')
-        );
-
-        return now()->gte($startDateTime);
+        $startDateTime = $this->start_datetime;
+        return $startDateTime ? now()->gte($startDateTime) : false;
     }
 
     /**
@@ -822,15 +863,8 @@ class Event extends Model
      */
     public function hasEnded(): bool
     {
-        if (!$this->end_date || !$this->end_time) {
-            return false;
-        }
-
-        $endDateTime = Carbon::createFromFormat('Y-m-d H:i:s', 
-            $this->end_date->format('Y-m-d') . ' ' . $this->end_time->format('H:i:s')
-        );
-
-        return now()->gt($endDateTime);
+        $endDateTime = $this->end_datetime;
+        return $endDateTime ? now()->gt($endDateTime) : false;
     }
 
     /**

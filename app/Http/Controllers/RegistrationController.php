@@ -45,7 +45,8 @@ class RegistrationController extends Controller
                 'user_id' => auth()->id(),
                 'registration_code' => $this->generateUniqueRegistrationCode(),
                 'registration_date' => now(),
-                'status' => 'confirmed',
+                'status' => 'pending',
+                'notes' => $request->notes,
             ]);
 
             // Generate QR code using service
@@ -68,7 +69,7 @@ class RegistrationController extends Controller
 
             return redirect()
                 ->route('events.show', $event->slug)
-                ->with('success', 'Registration successful! Check your email for confirmation details.');
+                ->with('success', 'Registration submitted successfully! Your registration is pending admin approval. You will receive an email with your registration card once approved.');
 
         } catch (\Exception $e) {
             DB::rollBack();

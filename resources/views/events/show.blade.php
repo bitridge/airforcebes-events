@@ -111,25 +111,42 @@
                             
                             @if(auth()->check())
                                 @if($userRegistration)
-                                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                                        <div class="flex items-center">
-                                            <svg class="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                            </svg>
-                                            <span class="text-green-800 font-medium">You are registered for this event!</span>
-                                        </div>
-                                        <div class="mt-2 text-sm text-green-700">
-                                            Registration Code: <span class="font-mono font-medium">{{ $userRegistration->registration_code }}</span>
-                                        </div>
-                                        <div class="mt-2">
-                                            <a href="{{ route('registrations.qr-code', $userRegistration) }}" class="inline-flex items-center text-green-600 hover:text-green-700 text-sm font-medium">
-                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V6a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1zm12 0h2a1 1 0 001-1V6a1 1 0 00-1-1h-2a1 1 0 00-1 1v1a1 1 0 001 1zM5 20h2a1 1 0 001-1v-1a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1z"></path>
+                                    @if($userRegistration->status === 'confirmed')
+                                        <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                                            <div class="flex items-center">
+                                                <svg class="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                                 </svg>
-                                                View QR Code
-                                            </a>
+                                                <span class="text-green-800 font-medium">Your registration is confirmed!</span>
+                                            </div>
+                                            <div class="mt-2 text-sm text-green-700">
+                                                Registration Code: <span class="font-mono font-medium">{{ $userRegistration->registration_code }}</span>
+                                            </div>
+                                            <div class="mt-3">
+                                                <a href="{{ route('registrations.qr-print', $userRegistration) }}" target="_blank" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700">
+                                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                                                    </svg>
+                                                    Print Registration Card
+                                                </a>
+                                            </div>
                                         </div>
-                                    </div>
+                                    @else
+                                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                                            <div class="flex items-center">
+                                                <svg class="w-5 h-5 text-yellow-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                </svg>
+                                                <span class="text-yellow-800 font-medium">Your registration is pending approval</span>
+                                            </div>
+                                            <div class="mt-2 text-sm text-yellow-700">
+                                                Registration Code: <span class="font-mono font-medium">{{ $userRegistration->registration_code }}</span>
+                                            </div>
+                                            <div class="mt-2 text-sm text-yellow-600">
+                                                Your registration has been submitted and is currently being reviewed by our team. You will receive an email with your registration card once it's approved.
+                                            </div>
+                                        </div>
+                                    @endif
                                 @else
                                     @if($event->isFull())
                                         <div class="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -152,13 +169,22 @@
                                             <p class="mt-1 text-sm text-yellow-700">The registration deadline for this event has passed.</p>
                                         </div>
                                     @else
-                                        <form action="{{ route('registrations.store') }}" method="POST" class="space-y-4">
+                                        <form action="{{ route('registrations.store', $event->slug) }}" method="POST" class="space-y-4">
                                             @csrf
                                             <input type="hidden" name="event_id" value="{{ $event->id }}">
                                             
                                             <div>
                                                 <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Additional Notes (Optional)</label>
                                                 <textarea id="notes" name="notes" rows="3" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Any special requirements or notes..."></textarea>
+                                            </div>
+                                            
+                                            <div class="flex items-start">
+                                                <div class="flex items-center h-5">
+                                                    <input id="terms_accepted" name="terms_accepted" type="checkbox" required class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2">
+                                                </div>
+                                                <div class="ml-3 text-sm">
+                                                    <label for="terms_accepted" class="font-medium text-gray-700">I accept the <a href="#" class="text-red-600 hover:text-red-500">terms and conditions</a></label>
+                                                </div>
                                             </div>
                                             
                                             <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200">

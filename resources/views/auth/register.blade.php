@@ -47,19 +47,10 @@
                 <div class="flex items-center">
                     <input id="role_attendee" name="role" type="radio" value="attendee" 
                            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300" 
-                           {{ old('role', 'attendee') === 'attendee' ? 'checked' : '' }} required>
+                           {{ old('role', 'attendee') === 'attendee' ? 'checked' : '' }} required checked>
                     <label for="role_attendee" class="ml-3">
                         <span class="block text-sm font-medium text-gray-700">Attendee</span>
                         <span class="block text-sm text-gray-500">Register for events and manage your registrations</span>
-                    </label>
-                </div>
-                <div class="flex items-center">
-                    <input id="role_admin" name="role" type="radio" value="admin" 
-                           class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
-                           {{ old('role') === 'admin' ? 'checked' : '' }} required>
-                    <label for="role_admin" class="ml-3">
-                        <span class="block text-sm font-medium text-gray-700">Event Administrator</span>
-                        <span class="block text-sm text-gray-500">Create and manage events, view registrations and analytics</span>
                     </label>
                 </div>
             </div>

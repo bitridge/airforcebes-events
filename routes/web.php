@@ -90,6 +90,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
            Route::put('/registrations/{registration}', [AdminRegistrationController::class, 'update'])->name('registrations.update');
            Route::delete('/registrations/{registration}', [AdminRegistrationController::class, 'destroy'])->name('registrations.destroy');
            Route::post('/registrations/{registration}/resend-email', [AdminRegistrationController::class, 'resendEmail'])->name('registrations.resend-email');
+           Route::post('/registrations/{registration}/send-registration-card', [AdminRegistrationController::class, 'sendRegistrationCard'])->name('registrations.send-registration-card');
            Route::post('/registrations/bulk-action', [AdminRegistrationController::class, 'bulkAction'])->name('registrations.bulk-action');
            Route::post('/registrations/export-csv', [AdminRegistrationController::class, 'exportCsv'])->name('registrations.export');
            Route::post('/registrations/export-pdf', [AdminRegistrationController::class, 'exportPdf'])->name('registrations.export-pdf');

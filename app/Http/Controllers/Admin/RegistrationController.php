@@ -8,6 +8,7 @@ use App\Models\Registration;
 use App\Models\Event;
 use App\Models\User;
 use App\Mail\RegistrationConfirmation;
+use App\Mail\RegistrationCard;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -200,13 +201,34 @@ class RegistrationController extends Controller
                 ]);
             }
 
+            $oldStatus = $registration->status;
             $registration->update($data);
+
+            // Send registration card email if status changed to confirmed
+            if ($oldStatus !== 'confirmed' && $data['status'] === 'confirmed') {
+                try {
+                    Mail::to($registration->user->email)
+                        ->send(new RegistrationCard($registration));
+                    
+                    Log::info('Registration card email sent', [
+                        'registration_id' => $registration->id,
+                        'user_email' => $registration->user->email,
+                        'admin_id' => auth()->id()
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('Failed to send registration card email', [
+                        'registration_id' => $registration->id,
+                        'error' => $e->getMessage()
+                    ]);
+                    // Don't fail the update if email fails
+                }
+            }
 
             DB::commit();
 
             return redirect()
                 ->route('admin.registrations.show', $registration)
-                ->with('success', 'Registration updated successfully!');
+                ->with('success', 'Registration updated successfully!' . ($oldStatus !== 'confirmed' && $data['status'] === 'confirmed' ? ' Registration card email sent.' : ''));
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -270,7 +292,25 @@ class RegistrationController extends Controller
             switch ($request->action) {
                 case 'confirm':
                     $registrations->update(['status' => 'confirmed']);
-                    $message = 'Registrations confirmed successfully!';
+                    
+                    // Send registration card emails for newly confirmed registrations
+                    $confirmedRegistrations = $registrations->get();
+                    $emailCount = 0;
+                    
+                    foreach ($confirmedRegistrations as $registration) {
+                        try {
+                            Mail::to($registration->user->email)
+                                ->send(new RegistrationCard($registration));
+                            $emailCount++;
+                        } catch (\Exception $e) {
+                            Log::error('Failed to send bulk registration card email', [
+                                'registration_id' => $registration->id,
+                                'error' => $e->getMessage()
+                            ]);
+                        }
+                    }
+                    
+                    $message = "Registrations confirmed successfully! {$emailCount} registration card emails sent.";
                     break;
 
                 case 'cancel':
@@ -309,7 +349,7 @@ class RegistrationController extends Controller
         }
     }
 
-    public function resendEmail(Registration $registration): RedirectResponse
+    public function resendEmail(Registration $registration): \Illuminate\Http\JsonResponse
     {
         try {
             Mail::to($registration->user->email)
@@ -321,7 +361,10 @@ class RegistrationController extends Controller
                 'attendee_email' => $registration->user->email
             ]);
 
-            return back()->with('success', 'Confirmation email sent successfully!');
+            return response()->json([
+                'success' => true,
+                'message' => 'Confirmation email sent successfully!'
+            ]);
 
         } catch (\Exception $e) {
             Log::error('Failed to resend confirmation email', [
@@ -329,7 +372,40 @@ class RegistrationController extends Controller
                 'error' => $e->getMessage()
             ]);
 
-            return back()->with('error', 'Failed to send email: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send email: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function sendRegistrationCard(Registration $registration): \Illuminate\Http\JsonResponse
+    {
+        try {
+            Mail::to($registration->user->email)
+                ->send(new RegistrationCard($registration));
+
+            Log::info('Registration card email sent', [
+                'registration_id' => $registration->id,
+                'user_id' => auth()->id(),
+                'attendee_email' => $registration->user->email
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Registration card email sent successfully!'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to send registration card email', [
+                'registration_id' => $registration->id,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send registration card email: ' . $e->getMessage()
+            ], 500);
         }
     }
 

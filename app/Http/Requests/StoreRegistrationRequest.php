@@ -41,22 +41,7 @@ class StoreRegistrationRequest extends FormRequest
                 'required',
                 'accepted',
             ],
-            'emergency_contact_name' => [
-                'nullable',
-                'string',
-                'max:255',
-            ],
-            'emergency_contact_phone' => [
-                'nullable',
-                'string',
-                'max:20',
-            ],
-            'dietary_requirements' => [
-                'nullable',
-                'string',
-                'max:1000',
-            ],
-            'special_accommodations' => [
+            'notes' => [
                 'nullable',
                 'string',
                 'max:1000',

@@ -98,13 +98,34 @@
                                     @method('PUT')
                                     <input type="hidden" name="status" value="confirmed">
                                     <button type="submit" class="inline-flex items-center px-3 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700">
-                                        Confirm Registration
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                        Approve Registration
                                     </button>
                                 </form>
+                            @elseif($registration->status === 'confirmed')
+                                <div class="inline-flex items-center px-3 py-2 bg-green-100 text-green-800 text-sm rounded-md">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Registration Approved
+                                </div>
                             @endif
                             <button onclick="resendEmail()" class="inline-flex items-center px-3 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                </svg>
                                 Resend Email
                             </button>
+                            @if($registration->status === 'confirmed')
+                            <button onclick="sendRegistrationCard()" class="inline-flex items-center px-3 py-2 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                </svg>
+                                Send Registration Card
+                            </button>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -203,6 +224,30 @@
                 .catch(error => {
                     console.error('Error:', error);
                     alert('An error occurred while sending the email.');
+                });
+            }
+        }
+
+        function sendRegistrationCard() {
+            if (confirm('Are you sure you want to send the registration card email?')) {
+                fetch('{{ route("admin.registrations.send-registration-card", $registration) }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Registration card email sent successfully!');
+                    } else {
+                        alert('Failed to send registration card email: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while sending the registration card email.');
                 });
             }
         }

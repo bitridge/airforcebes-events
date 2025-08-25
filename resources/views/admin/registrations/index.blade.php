@@ -60,12 +60,37 @@
                 </form>
             </div>
 
+            <!-- Bulk Actions -->
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <form method="POST" action="{{ route('admin.registrations.bulk-action') }}" id="bulkActionForm">
+                    @csrf
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" id="selectAll" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                            <label for="selectAll" class="text-sm font-medium text-gray-700">Select All</label>
+                        </div>
+                        <select name="action" class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="">Choose Action</option>
+                            <option value="confirm">Approve Selected</option>
+                            <option value="cancel">Cancel Selected</option>
+                            <option value="delete">Delete Selected</option>
+                        </select>
+                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50" id="bulkActionBtn" disabled>
+                            Apply Action
+                        </button>
+                    </div>
+                </form>
+            </div>
+
             <!-- Registrations Table -->
             <div class="bg-white rounded-lg shadow overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <input type="checkbox" id="headerCheckbox" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                </th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Attendee</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registration Code</th>
@@ -77,6 +102,9 @@
                         <tbody class="bg-white divide-y divide-gray-200">
                             @forelse($registrations as $registration)
                                 <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <input type="checkbox" name="registration_ids[]" value="{{ $registration->id }}" class="row-checkbox rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                    </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div>
                                             <div class="text-sm font-medium text-gray-900">{{ $registration->user->name }}</div>
@@ -118,7 +146,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                                    <td colspan="7" class="px-6 py-12 text-center text-gray-500">
                                         <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                                         </svg>
@@ -140,4 +168,79 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Bulk actions functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectAllCheckbox = document.getElementById('selectAll');
+            const headerCheckbox = document.getElementById('headerCheckbox');
+            const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+            const bulkActionBtn = document.getElementById('bulkActionBtn');
+            const actionSelect = document.querySelector('select[name="action"]');
+
+            // Header checkbox controls all row checkboxes
+            headerCheckbox.addEventListener('change', function() {
+                rowCheckboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+                updateBulkActionButton();
+            });
+
+            // Row checkboxes update header checkbox
+            rowCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    updateHeaderCheckbox();
+                    updateBulkActionButton();
+                });
+            });
+
+            // Action select updates button state
+            actionSelect.addEventListener('change', updateBulkActionButton);
+
+            function updateHeaderCheckbox() {
+                const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
+                const totalCount = rowCheckboxes.length;
+                
+                if (checkedCount === 0) {
+                    headerCheckbox.checked = false;
+                    headerCheckbox.indeterminate = false;
+                } else if (checkedCount === totalCount) {
+                    headerCheckbox.checked = true;
+                    headerCheckbox.indeterminate = false;
+                } else {
+                    headerCheckbox.checked = false;
+                    headerCheckbox.indeterminate = true;
+                }
+            }
+
+            function updateBulkActionButton() {
+                const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
+                const actionSelected = actionSelect.value !== '';
+                
+                bulkActionBtn.disabled = checkedCount === 0 || !actionSelected;
+            }
+
+            // Form submission confirmation
+            document.getElementById('bulkActionForm').addEventListener('submit', function(e) {
+                const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
+                const action = actionSelect.value;
+                
+                if (checkedCount === 0) {
+                    e.preventDefault();
+                    alert('Please select at least one registration.');
+                    return;
+                }
+
+                let message = `Are you sure you want to ${action} ${checkedCount} registration(s)?`;
+                
+                if (action === 'delete') {
+                    message += '\n\nThis action cannot be undone!';
+                }
+                
+                if (!confirm(message)) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
 @endsection

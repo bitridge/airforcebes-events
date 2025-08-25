@@ -182,6 +182,12 @@ show_help() {
 
 # Main script logic
 main() {
+    # Handle help command first
+    if [ "$1" = "help" ] || [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+        show_help
+        exit 0
+    fi
+    
     print_status "Composer Environment Helper Script"
     print_status "Environment: $ENV"
     print_status "Action: $ACTION"

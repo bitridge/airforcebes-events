@@ -21,7 +21,16 @@
         selectedProvider: 'custom',
         testingSmtp: false,
         smtpTestResult: null
-    }" class="bg-white rounded-lg shadow">
+    }" 
+    x-init="
+        window.settingsComponent = $data;
+        $watch('smtpTestResult', value => {
+            if (value) {
+                console.log('SMTP test result updated:', value);
+            }
+        });
+    "
+    class="bg-white rounded-lg shadow">
         <!-- Tab Navigation -->
         <div class="border-b border-gray-200">
             <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
@@ -427,11 +436,41 @@ function selectSmtpProvider(provider) {
     }
 }
 
+// Function to manually update SMTP test result UI (fallback)
+function updateSmtpTestResult(result) {
+    const testResultsContainer = document.querySelector('[x-show="smtpTestResult"]');
+    if (testResultsContainer) {
+        // Remove x-show directive temporarily
+        testResultsContainer.removeAttribute('x-show');
+        testResultsContainer.style.display = 'block';
+        
+        // Update the content
+        const messageElement = testResultsContainer.querySelector('p');
+        if (messageElement) {
+            messageElement.textContent = result.message;
+        }
+        
+        // Update styling
+        if (result.success) {
+            testResultsContainer.className = 'mt-4 p-3 rounded-md bg-green-50 text-green-800';
+        } else {
+            testResultsContainer.className = 'mt-4 p-3 rounded-md bg-red-50 text-red-800';
+        }
+    }
+}
+
 // Function to test SMTP connection
 async function testSmtpConnection() {
+    console.log('Starting SMTP test...');
+    
     const testBtn = document.getElementById('test-connection-btn');
     const testBtnText = document.getElementById('test-btn-text');
     const testBtnLoading = document.getElementById('test-btn-loading');
+    
+    if (!testBtn || !testBtnText || !testBtnLoading) {
+        console.error('Required button elements not found');
+        return;
+    }
     
     // Show loading state
     testBtn.disabled = true;
@@ -445,12 +484,18 @@ async function testSmtpConnection() {
     }
     
     const form = document.getElementById('smtp-settings-form');
+    if (!form) {
+        console.error('SMTP form not found');
+        return;
+    }
+    
     const formData = new FormData(form);
     
     // Add test email
     const testEmail = document.getElementById('test-email').value;
     if (testEmail) {
         formData.append('smtp_settings[test_email]', testEmail);
+        console.log('Test email:', testEmail);
     }
 
     try {
@@ -470,10 +515,17 @@ async function testSmtpConnection() {
         clearTimeout(timeoutId);
 
         const result = await response.json();
+        console.log('SMTP test response:', result);
         
-        // Update Alpine.js data
-        const alpineComponent = document.querySelector('[x-data*="testingSmtp"]').__x.$data;
-        alpineComponent.smtpTestResult = result;
+        // Update Alpine.js data using global reference
+        if (window.settingsComponent) {
+            console.log('Updating Alpine.js component with result');
+            window.settingsComponent.smtpTestResult = result;
+        } else {
+            console.log('Alpine.js component not found, using fallback');
+            // Fallback: manually update the UI
+            updateSmtpTestResult(result);
+        }
         
     } catch (error) {
         // Show error results
@@ -485,11 +537,20 @@ async function testSmtpConnection() {
             errorMessage += error.message;
         }
         
-        const alpineComponent = document.querySelector('[x-data*="testingSmtp"]').__x.$data;
-        alpineComponent.smtpTestResult = {
+        const errorResult = {
             success: false,
             message: errorMessage
         };
+        
+        // Update Alpine.js data using global reference
+        if (window.settingsComponent) {
+            console.log('Updating Alpine.js component with error result');
+            window.settingsComponent.smtpTestResult = errorResult;
+        } else {
+            console.log('Alpine.js component not found, using fallback for error');
+            // Fallback: manually update the UI
+            updateSmtpTestResult(errorResult);
+        }
     } finally {
         // Reset button state
         testBtn.disabled = false;

@@ -432,10 +432,6 @@ async function testSmtpConnection() {
     const testBtn = document.getElementById('test-connection-btn');
     const testBtnText = document.getElementById('test-btn-text');
     const testBtnLoading = document.getElementById('test-btn-loading');
-    const testResults = document.getElementById('test-results');
-    const successIcon = document.getElementById('success-icon');
-    const errorIcon = document.getElementById('error-icon');
-    const testMessage = document.getElementById('test-message');
     
     // Show loading state
     testBtn.disabled = true;
@@ -443,7 +439,10 @@ async function testSmtpConnection() {
     testBtnLoading.classList.remove('hidden');
     
     // Hide previous results
-    testResults.classList.add('hidden');
+    const existingResult = document.querySelector('[x-show="smtpTestResult"]');
+    if (existingResult) {
+        existingResult.style.display = 'none';
+    }
     
     const form = document.getElementById('smtp-settings-form');
     const formData = new FormData(form);
@@ -455,37 +454,42 @@ async function testSmtpConnection() {
     }
 
     try {
+        // Add timeout to prevent hanging
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+        
         const response = await fetch('{{ route("admin.settings.test-smtp") }}', {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
             },
-            body: formData
+            body: formData,
+            signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
 
         const result = await response.json();
         
-        // Show results
-        testResults.classList.remove('hidden');
-        testMessage.textContent = result.message;
-        
-        if (result.success) {
-            testResults.className = 'mt-4 p-3 rounded-md bg-green-50 text-green-800';
-            successIcon.classList.remove('hidden');
-            errorIcon.classList.add('hidden');
-        } else {
-            testResults.className = 'mt-4 p-3 rounded-md bg-red-50 text-red-800';
-            successIcon.classList.add('hidden');
-            errorIcon.classList.remove('hidden');
-        }
+        // Update Alpine.js data
+        const alpineComponent = document.querySelector('[x-data*="testingSmtp"]').__x.$data;
+        alpineComponent.smtpTestResult = result;
         
     } catch (error) {
         // Show error results
-        testResults.classList.remove('hidden');
-        testResults.className = 'mt-4 p-3 rounded-md bg-red-50 text-red-800';
-        testMessage.textContent = 'Failed to test SMTP connection: ' + error.message;
-        successIcon.classList.add('hidden');
-        errorIcon.classList.remove('hidden');
+        let errorMessage = 'Failed to test SMTP connection: ';
+        
+        if (error.name === 'AbortError') {
+            errorMessage += 'Request timed out after 30 seconds';
+        } else {
+            errorMessage += error.message;
+        }
+        
+        const alpineComponent = document.querySelector('[x-data*="testingSmtp"]').__x.$data;
+        alpineComponent.smtpTestResult = {
+            success: false,
+            message: errorMessage
+        };
     } finally {
         // Reset button state
         testBtn.disabled = false;

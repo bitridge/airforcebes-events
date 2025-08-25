@@ -56,6 +56,50 @@ In order to ensure that the Laravel community is welcoming to all, please review
 
 If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
+## Deployment
+
+### Production Deployment
+
+This application uses Vite for asset compilation. For production deployment:
+
+#### Option 1: Automated Deployment
+```bash
+# Run the deployment script
+./deploy-production.sh
+```
+
+#### Option 2: Manual Deployment
+```bash
+# Install dependencies
+npm install
+
+# Build production assets
+npm run build
+
+# Clear Laravel caches
+php artisan optimize:clear
+php artisan view:clear
+php artisan config:clear
+
+# Optimize for production
+php artisan optimize
+php artisan view:cache
+php artisan config:cache
+```
+
+### Important Notes
+
+- **Build Assets**: The `public/build/` directory is automatically generated and should NOT be committed to Git
+- **Environment**: Ensure `.env` file is properly configured for production
+- **Permissions**: Ensure web server has read access to `public/build/` and write access to `storage/`
+- **Storage**: Run `php artisan storage:link` to create the storage symlink
+
+### Asset Management
+
+- **Development**: Use `npm run dev` for hot reloading
+- **Production**: Use `npm run build` for optimized assets
+- **Watch Mode**: Use `npm run watch` for automatic rebuilding
+
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).

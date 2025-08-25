@@ -18,6 +18,12 @@ npm ci --production
 echo "🔨 Building production assets..."
 npm run build
 
+# Remove built assets from Git tracking (if they were previously tracked)
+echo "🗑️  Removing built assets from Git tracking..."
+git rm -r --cached public/build 2>/dev/null || true
+git add .gitignore
+git commit -m "Update .gitignore and remove built assets from tracking" 2>/dev/null || true
+
 # Verify assets were built
 echo "✅ Verifying built assets..."
 if [ ! -f "public/build/manifest.json" ]; then

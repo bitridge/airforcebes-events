@@ -17,3 +17,46 @@
 /storage/app/temp
 
 # LARAVEL SPECIFIC
+/storage/*.key
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/logs/*
+/storage/app/public/*
+!/storage/app/public/.gitkeep
+
+# COMPILED ASSETS
+/public/build
+/public/hot
+/public/storage
+/public/mix-manifest.json
+
+# DEVELOPMENT FILES
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+
+# IDE & EDITOR FILES
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS GENERATED FILES
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# COMPOSER
+composer.phar
+composer.lock
+
+# NPM
+package-lock.json

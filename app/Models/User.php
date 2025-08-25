@@ -473,4 +473,20 @@ class User extends Authenticatable
         // Return as is if format is unrecognized
         return $this->phone;
     }
+
+    /**
+     * Get user's bio for display.
+     */
+    public function getBioAttribute(): ?string
+    {
+        return $this->attributes['bio'] ?? null;
+    }
+
+    /**
+     * Get user's profile picture path.
+     */
+    public function getProfilePictureAttribute(): ?string
+    {
+        return $this->attributes['profile_picture'] ?? null;
+    }
 }

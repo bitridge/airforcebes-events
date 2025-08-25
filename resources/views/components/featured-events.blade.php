@@ -11,13 +11,17 @@
                 @foreach($events as $event)
                     <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200">
                         @if($event->featured_image)
-                            <img src="{{ asset('storage/' . $event->featured_image) }}" alt="{{ $event->title }}" class="w-full h-48 object-cover">
+                            <a href="{{ route('events.show', $event->slug) }}" class="block">
+                                <img src="{{ asset('storage/' . $event->featured_image) }}" alt="{{ $event->title }}" class="w-full h-48 object-cover hover:opacity-90 transition-opacity duration-200">
+                            </a>
                         @else
-                            <div class="w-full h-48 bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center">
+                            <a href="{{ route('events.show', $event->slug) }}" class="block">
+                                <div class="w-full h-48 bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center hover:opacity-90 transition-opacity duration-200">
                                 <svg class="w-16 h-16 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                 </svg>
                             </div>
+                            </a>
                         @endif
                         
                         <div class="p-6">
@@ -32,7 +36,9 @@
                                 @endif
                             </div>
                             
-                            <h3 class="text-xl font-semibold text-slate-800 mb-3">{{ $event->title }}</h3>
+                            <a href="{{ route('events.show', $event->slug) }}" class="block">
+                                <h3 class="text-xl font-semibold text-slate-800 mb-3 hover:text-red-600 transition-colors duration-200">{{ $event->title }}</h3>
+                            </a>
                             <p class="text-slate-600 text-sm mb-4 line-clamp-3">{{ Str::limit($event->description, 120) }}</p>
                             
                             <div class="space-y-2 mb-4">

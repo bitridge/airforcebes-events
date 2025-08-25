@@ -283,19 +283,56 @@
         function showFieldMapping(headers) {
             const container = document.getElementById('mappingContainer');
             const mappingFields = [
+                // Personal Information (Required)
                 { key: 'first_name', label: 'First Name', required: true },
                 { key: 'last_name', label: 'Last Name', required: true },
                 { key: 'email', label: 'Email', required: true },
                 { key: 'phone', label: 'Phone', required: false },
-                { key: 'organization', label: 'Organization', required: false },
-                { key: 'dietary_requirements', label: 'Dietary Requirements', required: false },
-                { key: 'special_accommodations', label: 'Special Accommodations', required: false },
-                { key: 'emergency_contact_name', label: 'Emergency Contact Name', required: false },
-                { key: 'emergency_contact_phone', label: 'Emergency Contact Phone', required: false },
+                { key: 'organization_name', label: 'Organization Name', required: true },
+                { key: 'title', label: 'Job Title', required: false },
+                
+                // Registration Type
+                { key: 'type', label: 'Registration Type', required: false },
+                { key: 'checkin_type', label: 'Check-in Type', required: false },
+                
+                // Business Information
+                { key: 'naics_codes', label: 'NAICS Codes', required: false },
+                { key: 'industry_connections', label: 'Industry Connections', required: false },
+                { key: 'core_specialty_area', label: 'Core Specialty Area', required: false },
+                { key: 'contract_vehicles', label: 'Contract Vehicles', required: false },
+                
+                // Preferences
+                { key: 'meeting_preference', label: 'Meeting Preference', required: false },
+                
+                // Event Specific
+                { key: 'small_business_forum', label: 'Small Business Forum', required: false },
+                { key: 'small_business_matchmaker', label: 'Small Business Matchmaker', required: false },
+                
+                // Additional Information
                 { key: 'notes', label: 'Notes', required: false }
             ];
 
-            let html = '<div class="grid grid-cols-2 gap-4 mb-4">';
+            // Add helpful mapping suggestions based on common CSV headers
+            const headerSuggestions = {
+                'first_name': ['First Name', 'First', 'First Name', 'Given Name'],
+                'last_name': ['Last Name', 'Last', 'Surname', 'Family Name'],
+                'email': ['Email', 'E-mail', 'Email Address', 'E-mail Address'],
+                'phone': ['Phone', 'Phone Number', 'Telephone', 'Mobile', 'Cell'],
+                'organization_name': ['Organization Name', 'Organization', 'Company', 'Company Name', 'Employer'],
+                'title': ['Job Title', 'Title', 'Position', 'Job Position', 'Role'],
+                'type': ['Registration Type', 'Type', 'Reg Type', 'Category'],
+                'checkin_type': ['Check-in Type', 'Checkin Type', 'Check In Type', 'Checkin'],
+                'naics_codes': ['NAICS Codes', 'NAICS', 'NAICS Code', 'Industry Codes'],
+                'industry_connections': ['Industry Connections', 'Industry', 'Connections', 'Industry Type'],
+                'core_specialty_area': ['Core Specialty Area', 'Specialty', 'Core Specialty', 'Specialty Area'],
+                'contract_vehicles': ['Contract Vehicles', 'Contract Vehicle', 'Vehicles', 'Contract Type'],
+                'meeting_preference': ['Meeting Preference', 'Preference', 'Meeting Type', 'Format'],
+                'small_business_forum': ['Small Business Forum', 'Business Forum', 'Forum', 'SBF'],
+                'small_business_matchmaker': ['Small Business Matchmaker', 'Business Matchmaker', 'Matchmaker', 'SBM'],
+                'notes': ['Notes', 'Additional Notes', 'Comments', 'Remarks', 'Description']
+            };
+
+            let html = '<div class="grid grid-cols-3 gap-4 mb-4">';
             mappingFields.forEach(field => {
                 html += `
                     <div class="space-y-2">
@@ -365,7 +402,7 @@
             }
 
             // Check required field mappings
-            const requiredFields = ['first_name', 'last_name', 'email'];
+            const requiredFields = ['first_name', 'last_name', 'email', 'organization_name'];
             for (const field of requiredFields) {
                 const mapping = document.querySelector(`select[name="mapping[${field}]"]`).value;
                 if (!mapping && mapping !== '0') {
@@ -379,10 +416,10 @@
 
         function downloadTemplate() {
             const csvContent = [
-                'First Name,Last Name,Email,Phone,Organization,Dietary Requirements,Special Accommodations,Emergency Contact Name,Emergency Contact Phone,Notes',
-                'John,Doe,john.doe@example.com,+1234567890,ABC Company,None,None,Jane Doe,+1234567891,First time attendee',
-                'Jane,Smith,jane.smith@example.com,+1234567892,XYZ Corp,Vegetarian,Wheelchair accessible,John Smith,+1234567893,',
-                'Bob,Johnson,bob.johnson@example.com,+1234567894,123 Industries,None,None,Mary Johnson,+1234567895,Looking forward to the event'
+                'First Name,Last Name,Email,Phone,Organization Name,Job Title,Registration Type,Check-in Type,NAICS Codes,Industry Connections,Core Specialty Area,Contract Vehicles,Meeting Preference,Small Business Forum,Small Business Matchmaker,Notes',
+                'John,Doe,john.doe@example.com,+1234567890,ABC Company,Software Engineer,registration,standard,541511,Technology,Software Development,IDIQ,no_preference,true,false,First time attendee',
+                'Jane,Smith,jane.smith@example.com,+1234567892,XYZ Corp,Project Manager,registration,standard,541512,Consulting,Project Management,GWAC,prefer_afternoon,false,true,',
+                'Bob,Johnson,bob.johnson@example.com,+1234567894,123 Industries,Business Analyst,registration,standard,541519,Manufacturing,Analysis,IDIQ,prefer_morning,true,true,Looking forward to the event'
             ].join('\n');
             
             const blob = new Blob([csvContent], { type: 'text/csv' });

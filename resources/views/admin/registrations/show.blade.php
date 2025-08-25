@@ -39,15 +39,29 @@
                             <dl class="space-y-2">
                                 <div>
                                     <dt class="text-sm font-medium text-gray-500">Name</dt>
-                                    <dd class="text-sm text-gray-900">{{ $registration->user->name }}</dd>
+                                    <dd class="text-sm text-gray-900">
+                                        @if($registration->first_name && $registration->last_name)
+                                            {{ $registration->first_name }} {{ $registration->last_name }}
+                                        @else
+                                            {{ $registration->user->name }}
+                                        @endif
+                                    </dd>
                                 </div>
                                 <div>
                                     <dt class="text-sm font-medium text-gray-500">Email</dt>
-                                    <dd class="text-sm text-gray-900">{{ $registration->user->email }}</dd>
+                                    <dd class="text-sm text-gray-900">{{ $registration->email ?? $registration->user->email }}</dd>
                                 </div>
                                 <div>
                                     <dt class="text-sm font-medium text-gray-500">Phone</dt>
-                                    <dd class="text-sm text-gray-900">{{ $registration->user->phone ?? 'Not provided' }}</dd>
+                                    <dd class="text-sm text-gray-900">{{ $registration->phone ?? $registration->user->phone ?? 'Not provided' }}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Organization</dt>
+                                    <dd class="text-sm text-gray-900">{{ $registration->organization_name ?? 'Not provided' }}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Job Title</dt>
+                                    <dd class="text-sm text-gray-900">{{ $registration->title ?? 'Not provided' }}</dd>
                                 </div>
                             </dl>
                         </div>
@@ -128,6 +142,88 @@
                             @endif
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Additional Registration Details -->
+            <div class="bg-white shadow rounded-lg mb-6">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Additional Details</h3>
+                </div>
+                <div class="px-6 py-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-medium text-gray-700 mb-2">Registration Type</h4>
+                            <dl class="space-y-2">
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Type</dt>
+                                    <dd class="text-sm text-gray-900">{{ ucfirst($registration->type ?? 'registration') }}</dd>
+                                </div>
+                                @if($registration->checkin_type)
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Check-in Type</dt>
+                                    <dd class="text-sm text-gray-900">{{ ucfirst(str_replace('_', ' ', $registration->checkin_type)) }}</dd>
+                                </div>
+                                @endif
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Meeting Preference</dt>
+                                    <dd class="text-sm text-gray-900">{{ ucfirst(str_replace('_', ' ', $registration->meeting_preference ?? 'no_preference')) }}</dd>
+                                </div>
+                            </dl>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-gray-700 mb-2">Event Participation</h4>
+                            <dl class="space-y-2">
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Small Business Forum</dt>
+                                    <dd class="text-sm text-gray-900">{{ $registration->small_business_forum ? 'Yes' : 'No' }}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Small Business Matchmaker</dt>
+                                    <dd class="text-sm text-gray-900">{{ $registration->small_business_matchmaker ? 'Yes' : 'No' }}</dd>
+                                </div>
+                            </dl>
+                        </div>
+                    </div>
+                    
+                    @if($registration->naics_codes || $registration->industry_connections || $registration->core_specialty_area || $registration->contract_vehicles)
+                    <div class="mt-6">
+                        <h4 class="font-medium text-gray-700 mb-2">Business Information</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            @if($registration->naics_codes)
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">NAICS Codes</dt>
+                                <dd class="text-sm text-gray-900">{{ $registration->naics_codes }}</dd>
+                            </div>
+                            @endif
+                            @if($registration->industry_connections)
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Industry Connections</dt>
+                                <dd class="text-sm text-gray-900">{{ $registration->industry_connections }}</dd>
+                            </div>
+                            @endif
+                            @if($registration->core_specialty_area)
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Core Specialty Area</dt>
+                                <dd class="text-sm text-gray-900">{{ $registration->core_specialty_area }}</dd>
+                            </div>
+                            @endif
+                            @if($registration->contract_vehicles)
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Contract Vehicles</dt>
+                                <dd class="text-sm text-gray-900">{{ $registration->contract_vehicles }}</dd>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
+                    
+                    @if($registration->notes)
+                    <div class="mt-6">
+                        <h4 class="font-medium text-gray-700 mb-2">Additional Notes</h4>
+                        <p class="text-sm text-gray-900">{{ $registration->notes }}</p>
+                    </div>
+                    @endif
                 </div>
             </div>
 

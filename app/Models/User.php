@@ -27,6 +27,17 @@ class User extends Authenticatable
         'organization',
         'is_active',
         'created_by',
+        'first_name',
+        'last_name',
+        'organization_name',
+        'title',
+        'naics_codes',
+        'industry_connections',
+        'core_specialty_area',
+        'contract_vehicles',
+        'meeting_preference',
+        'small_business_forum',
+        'small_business_matchmaker',
     ];
 
     /**

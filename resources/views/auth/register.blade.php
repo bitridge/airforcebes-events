@@ -6,37 +6,123 @@
     <form method="POST" action="{{ route('register') }}" class="space-y-6">
         @csrf
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Name -->
-            <div>
-                <x-input-label for="name" :value="__('Full Name')" />
-                <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" placeholder="Enter your full name" />
-                <x-input-error :messages="$errors->get('name')" class="mt-2" />
-            </div>
+        <!-- Personal Information Section -->
+        <div class="bg-gray-50 p-4 rounded-lg">
+            <h4 class="text-lg font-medium text-gray-900 mb-4">Personal Information</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- First Name -->
+                <div>
+                    <x-input-label for="first_name" :value="__('First Name')" />
+                    <x-text-input id="first_name" class="block mt-1 w-full" type="text" name="first_name" :value="old('first_name')" required autofocus autocomplete="given-name" placeholder="Enter your first name" />
+                    <x-input-error :messages="$errors->get('first_name')" class="mt-2" />
+                </div>
 
-            <!-- Email Address -->
-            <div>
-                <x-input-label for="email" :value="__('Email Address')" />
-                <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" placeholder="Enter your email address" />
-                <x-input-error :messages="$errors->get('email')" class="mt-2" />
+                <!-- Last Name -->
+                <div>
+                    <x-input-label for="last_name" :value="__('Last Name')" />
+                    <x-text-input id="last_name" class="block mt-1 w-full" type="text" name="last_name" :value="old('last_name')" required autocomplete="family-name" placeholder="Enter your last name" />
+                    <x-input-error :messages="$errors->get('last_name')" class="mt-2" />
+                </div>
+
+                <!-- Email Address -->
+                <div>
+                    <x-input-label for="email" :value="__('Email Address')" />
+                    <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" placeholder="Enter your email address" />
+                    <x-input-error :messages="$errors->get('email')" class="mt-2" />
+                </div>
+
+                <!-- Phone Number -->
+                <div>
+                    <x-input-label for="phone" :value="__('Phone Number')" />
+                    <x-text-input id="phone" class="block mt-1 w-full" type="tel" name="phone" :value="old('phone')" autocomplete="tel" placeholder="+1 (555) 123-4567" />
+                    <x-input-error :messages="$errors->get('phone')" class="mt-2" />
+                    <p class="mt-1 text-xs text-gray-500">Optional - for event notifications</p>
+                </div>
+
+                <!-- Organization Name -->
+                <div class="md:col-span-2">
+                    <x-input-label for="organization_name" :value="__('Organization Name')" />
+                    <x-text-input id="organization_name" class="block mt-1 w-full" type="text" name="organization_name" :value="old('organization_name')" required autocomplete="organization" placeholder="Your organization or company" />
+                    <x-input-error :messages="$errors->get('organization_name')" class="mt-2" />
+                </div>
+
+                <!-- Job Title -->
+                <div class="md:col-span-2">
+                    <x-input-label for="title" :value="__('Job Title')" />
+                    <x-text-input id="title" class="block mt-1 w-full" type="text" name="title" :value="old('title')" autocomplete="organization-title" placeholder="Your job title or position" />
+                    <x-input-error :messages="$errors->get('title')" class="mt-2" />
+                    <p class="mt-1 text-xs text-gray-500">Optional</p>
+                </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Phone Number -->
-            <div>
-                <x-input-label for="phone" :value="__('Phone Number')" />
-                <x-text-input id="phone" class="block mt-1 w-full" type="tel" name="phone" :value="old('phone')" autocomplete="tel" placeholder="+1 (555) 123-4567" />
-                <x-input-error :messages="$errors->get('phone')" class="mt-2" />
-                <p class="mt-1 text-xs text-gray-500">Optional - for event notifications</p>
-            </div>
+        <!-- Business Information Section -->
+        <div class="bg-gray-50 p-4 rounded-lg">
+            <h4 class="text-lg font-medium text-gray-900 mb-4">Business Information</h4>
+            <div class="space-y-4">
+                <!-- NAICS Codes -->
+                <div>
+                    <x-input-label for="naics_codes" :value="__('NAICS Codes')" />
+                    <textarea id="naics_codes" name="naics_codes" rows="2" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="Enter NAICS codes for your business sector">{{ old('naics_codes') }}</textarea>
+                    <x-input-error :messages="$errors->get('naics_codes')" class="mt-2" />
+                    <p class="mt-1 text-xs text-gray-500">Optional - North American Industry Classification System codes</p>
+                </div>
 
-            <!-- Organization -->
+                <!-- Industry Connections -->
+                <div>
+                    <x-input-label for="industry_connections" :value="__('Industry Connections')" />
+                    <textarea id="industry_connections" name="industry_connections" rows="2" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="Describe your industry connections and partnerships">{{ old('industry_connections') }}</textarea>
+                    <x-input-error :messages="$errors->get('industry_connections')" class="mt-2" />
+                    <p class="mt-1 text-xs text-gray-500">Optional - Describe your industry network</p>
+                </div>
+
+                <!-- Core Specialty Area -->
+                <div>
+                    <x-input-label for="core_specialty_area" :value="__('Core Specialty Area')" />
+                    <textarea id="core_specialty_area" name="core_specialty_area" rows="2" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="Describe your core specialty area or expertise">{{ old('core_specialty_area') }}</textarea>
+                    <x-input-error :messages="$errors->get('core_specialty_area')" class="mt-2" />
+                    <p class="mt-1 text-xs text-gray-500">Optional - Your main area of expertise</p>
+                </div>
+
+                <!-- Contract Vehicles -->
+                <div>
+                    <x-input-label for="contract_vehicles" :value="__('Contract Vehicles')" />
+                    <textarea id="contract_vehicles" name="contract_vehicles" rows="2" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="List your contract vehicles or government contracts">{{ old('contract_vehicles') }}</textarea>
+                    <x-input-error :messages="$errors->get('contract_vehicles')" class="mt-2" />
+                    <p class="mt-1 text-xs text-gray-500">Optional - Government or commercial contracts</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preferences Section -->
+        <div class="bg-gray-50 p-4 rounded-lg">
+            <h4 class="text-lg font-medium text-gray-900 mb-4">Preferences</h4>
             <div>
-                <x-input-label for="organization" :value="__('Organization')" />
-                <x-text-input id="organization" class="block mt-1 w-full" type="text" name="organization" :value="old('organization')" autocomplete="organization" placeholder="Your organization or company" />
-                <x-input-error :messages="$errors->get('organization')" class="mt-2" />
-                <p class="mt-1 text-xs text-gray-500">Optional</p>
+                <x-input-label for="meeting_preference" :value="__('Meeting Preference')" />
+                <select id="meeting_preference" name="meeting_preference" required class="block mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="">Select your preference</option>
+                    <option value="in_person" {{ old('meeting_preference') == 'in_person' ? 'selected' : '' }}>In Person</option>
+                    <option value="virtual" {{ old('meeting_preference') == 'virtual' ? 'selected' : '' }}>Virtual</option>
+                    <option value="hybrid" {{ old('meeting_preference') == 'hybrid' ? 'selected' : '' }}>Hybrid</option>
+                    <option value="no_preference" {{ old('meeting_preference') == 'no_preference' ? 'selected' : '' }}>No Preference</option>
+                </select>
+                <x-input-error :messages="$errors->get('meeting_preference')" class="mt-2" />
+                <p class="mt-1 text-xs text-gray-500">How you prefer to attend events</p>
+            </div>
+        </div>
+
+        <!-- Event Participation Section -->
+        <div class="bg-gray-50 p-4 rounded-lg">
+            <h4 class="text-lg font-medium text-gray-900 mb-4">Event Participation</h4>
+            <div class="space-y-4">
+                <div class="flex items-center">
+                    <input id="small_business_forum" name="small_business_forum" type="checkbox" value="1" {{ old('small_business_forum') ? 'checked' : '' }} class="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2">
+                    <label for="small_business_forum" class="ml-3 text-sm font-medium text-gray-700">Small Business Forum: Increasing the Defense Industrial Base</label>
+                </div>
+                <div class="flex items-center">
+                    <input id="small_business_matchmaker" name="small_business_matchmaker" type="checkbox" value="1" {{ old('small_business_matchmaker') ? 'checked' : '' }} class="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2">
+                    <label for="small_business_matchmaker" class="ml-3 text-sm font-medium text-gray-700">Small Business Matchmaker</label>
+                </div>
             </div>
         </div>
 

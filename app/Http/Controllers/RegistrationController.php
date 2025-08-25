@@ -37,23 +37,93 @@ class RegistrationController extends Controller
      */
     public function store(StoreRegistrationRequest $request, Event $event): RedirectResponse
     {
+        // Log the registration attempt
+        \Log::info('Registration attempt started', [
+            'event_id' => $event->id,
+            'event_slug' => $event->slug,
+            'user_id' => auth()->id(),
+            'user_email' => auth()->user()->email,
+            'request_data' => $request->all(),
+            'timestamp' => now(),
+        ]);
+
         try {
             DB::beginTransaction();
 
             // Create the registration
+            \Log::info('Creating registration record', [
+                'event_id' => $event->id,
+                'user_id' => auth()->id(),
+                'registration_data' => [
+                    'user_id' => auth()->id(),
+                    'registration_code' => $this->generateUniqueRegistrationCode(),
+                    'registration_date' => now(),
+                    'status' => 'pending',
+                    'notes' => $request->notes,
+                    'first_name' => $request->first_name,
+                    'last_name' => $request->last_name,
+                    'email' => $request->email,
+                    'phone' => $request->phone,
+                    'organization_name' => $request->organization_name,
+                    'title' => $request->title,
+                    'type' => $request->type,
+                    'checkin_type' => $request->checkin_type,
+                    'naics_codes' => $request->naics_codes,
+                    'industry_connections' => $request->industry_connections,
+                    'core_specialty_area' => $request->core_specialty_area,
+                    'contract_vehicles' => $request->contract_vehicles,
+                    'meeting_preference' => $request->meeting_preference,
+                    'small_business_forum' => $request->boolean('small_business_forum'),
+                    'small_business_matchmaker' => $request->boolean('small_business_matchmaker'),
+                ]
+            ]);
+
             $registration = $event->registrations()->create([
                 'user_id' => auth()->id(),
                 'registration_code' => $this->generateUniqueRegistrationCode(),
                 'registration_date' => now(),
                 'status' => 'pending',
                 'notes' => $request->notes,
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'organization_name' => $request->organization_name,
+                'title' => $request->title,
+                'type' => $request->type,
+                'checkin_type' => $request->checkin_type,
+                'naics_codes' => $request->naics_codes,
+                'industry_connections' => $request->industry_connections,
+                'core_specialty_area' => $request->core_specialty_area,
+                'contract_vehicles' => $request->contract_vehicles,
+                'meeting_preference' => $request->meeting_preference,
+                'small_business_forum' => $request->boolean('small_business_forum'),
+                'small_business_matchmaker' => $request->boolean('small_business_matchmaker'),
+            ]);
+
+            \Log::info('Registration created successfully', [
+                'registration_id' => $registration->id,
+                'registration_code' => $registration->registration_code,
             ]);
 
             // Generate QR code using service
+            \Log::info('Generating QR code', [
+                'registration_id' => $registration->id,
+            ]);
+
             $qrCodeService = new QRCodeService();
             $qrResult = $qrCodeService->generateQRCode($registration);
 
+            \Log::info('QR code generated successfully', [
+                'registration_id' => $registration->id,
+                'qr_result' => $qrResult,
+            ]);
+
             DB::commit();
+
+            \Log::info('Database transaction committed successfully', [
+                'registration_id' => $registration->id,
+            ]);
 
             // Send confirmation email
             try {
@@ -66,6 +136,11 @@ class RegistrationController extends Controller
                     'error' => $e->getMessage()
                 ]);
             }
+
+            \Log::info('Registration process completed successfully', [
+                'registration_id' => $registration->id,
+                'redirecting_to' => route('events.show', $event->slug),
+            ]);
 
             return redirect()
                 ->route('events.show', $event->slug)

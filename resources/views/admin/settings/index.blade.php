@@ -699,6 +699,6 @@
         setTimeout(function() {
             initFallbackTabs();
         }, 100);
-    });
+});
 </script>
 @endsection

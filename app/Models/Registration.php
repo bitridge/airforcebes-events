@@ -22,6 +22,21 @@ class Registration extends Model
         'registration_date',
         'status',
         'notes',
+        'first_name',
+        'last_name',
+        'email',
+        'phone',
+        'organization_name',
+        'title',
+        'type',
+        'checkin_type',
+        'naics_codes',
+        'industry_connections',
+        'core_specialty_area',
+        'contract_vehicles',
+        'meeting_preference',
+        'small_business_forum',
+        'small_business_matchmaker',
     ];
 
     protected function casts(): array
@@ -640,5 +655,50 @@ class Registration extends Model
         }
         
         return $this->registration_date->format('M j, Y \a\t H:i');
+    }
+
+    /**
+     * Get the full name of the registrant
+     */
+    public function getFullNameAttribute(): string
+    {
+        if ($this->first_name && $this->last_name) {
+            return trim($this->first_name . ' ' . $this->last_name);
+        }
+        
+        // Fallback to user name if available
+        if ($this->user) {
+            return $this->user->name;
+        }
+        
+        return 'Unknown';
+    }
+
+    /**
+     * Get the display name (first + last or user name)
+     */
+    public function getDisplayNameAttribute(): string
+    {
+        if ($this->first_name && $this->last_name) {
+            return trim($this->first_name . ' ' . $this->last_name);
+        }
+        
+        return $this->user->name ?? 'Unknown';
+    }
+
+    /**
+     * Get the contact email (registration email or user email)
+     */
+    public function getContactEmailAttribute(): string
+    {
+        return $this->email ?? $this->user->email ?? 'No email';
+    }
+
+    /**
+     * Get the contact phone (registration phone or user phone)
+     */
+    public function getContactPhoneAttribute(): string
+    {
+        return $this->phone ?? $this->user->phone ?? 'No phone';
     }
 }

@@ -45,6 +45,15 @@ class ProfileController extends Controller
         // Update other fields
         $user->fill($request->except('profile_picture'));
 
+        // Ensure name is constructed from first_name and last_name
+        if ($request->filled('first_name') && $request->filled('last_name')) {
+            $user->name = $request->first_name . ' ' . $request->last_name;
+        }
+
+        // Handle boolean fields
+        $user->small_business_forum = $request->boolean('small_business_forum');
+        $user->small_business_matchmaker = $request->boolean('small_business_matchmaker');
+
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
         }

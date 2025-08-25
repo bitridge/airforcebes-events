@@ -20,6 +20,10 @@
                         <a href="{{ route('register') }}" class="border-2 border-white text-white hover:bg-white hover:text-slate-800 px-8 py-4 rounded-lg text-lg font-semibold transition-all duration-200">
                             Create Account
                         </a>
+                    @else
+                        <a href="{{ route('self-checkin.index') }}" class="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-colors duration-200">
+                            Check In
+                        </a>
                     @endguest
                 </div>
             </div>

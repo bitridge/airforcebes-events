@@ -30,20 +30,43 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255', 'min:2'],
+            'first_name' => ['required', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'phone' => ['nullable', 'string', 'max:20', 'regex:/^[\+]?[0-9\s\-\(\)]+$/'],
-            'organization' => ['nullable', 'string', 'max:255'],
+            'organization_name' => ['required', 'string', 'max:255'],
+            'title' => ['nullable', 'string', 'max:255'],
+            'naics_codes' => ['nullable', 'string', 'max:1000'],
+            'industry_connections' => ['nullable', 'string', 'max:1000'],
+            'core_specialty_area' => ['nullable', 'string', 'max:1000'],
+            'contract_vehicles' => ['nullable', 'string', 'max:1000'],
+            'meeting_preference' => ['required', 'in:in_person,virtual,hybrid,no_preference'],
+            'small_business_forum' => ['boolean'],
+            'small_business_matchmaker' => ['boolean'],
             'role' => ['required', 'in:admin,attendee'],
         ]);
 
+        // Generate full name from first and last name
+        $fullName = trim($request->first_name . ' ' . $request->last_name);
+
         $user = User::create([
-            'name' => $request->name,
+            'name' => $fullName,
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'phone' => $request->phone,
-            'organization' => $request->organization,
+            'organization' => $request->organization_name, // Keep for backward compatibility
+            'organization_name' => $request->organization_name,
+            'title' => $request->title,
+            'naics_codes' => $request->naics_codes,
+            'industry_connections' => $request->industry_connections,
+            'core_specialty_area' => $request->core_specialty_area,
+            'contract_vehicles' => $request->contract_vehicles,
+            'meeting_preference' => $request->meeting_preference,
+            'small_business_forum' => $request->boolean('small_business_forum'),
+            'small_business_matchmaker' => $request->boolean('small_business_matchmaker'),
             'role' => $request->role ?? 'attendee',
             'is_active' => true,
             'created_by' => null, // Self-registration

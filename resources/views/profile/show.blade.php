@@ -13,21 +13,7 @@
             </a>
         </div>
 
-        <!-- Debug Information (only show in non-production) -->
-        @if(config('app.debug'))
-            <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded">
-                <h4 class="font-medium">Debug Information</h4>
-                <div class="text-sm mt-2 space-y-1">
-                    <p><strong>User ID:</strong> {{ $user->id ?? 'N/A' }}</p>
-                    <p><strong>User Name:</strong> {{ $user->name ?? 'N/A' }}</p>
-                    <p><strong>User Email:</strong> {{ $user->email ?? 'N/A' }}</p>
-                    <p><strong>Registration Count:</strong> {{ $registrationCount ?? 'N/A' }}</p>
-                    <p><strong>Check-in Count:</strong> {{ $checkInCount ?? 'N/A' }}</p>
-                    <p><strong>Environment:</strong> {{ config('app.env') }}</p>
-                    <p><strong>App Debug:</strong> {{ config('app.debug') ? 'Yes' : 'No' }}</p>
-                </div>
-            </div>
-        @endif
+
 
         <!-- Profile Overview -->
         <div class="bg-white rounded-lg shadow p-6">
@@ -65,12 +51,21 @@
                             </span>
                         @endif
                         
-                        @if($user->organization)
+                        @if($user->organization_name)
                             <span class="text-sm text-gray-500">
                                 <svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                                 </svg>
-                                {{ $user->organization }}
+                                {{ $user->organization_name }}
+                            </span>
+                        @endif
+
+                        @if($user->title)
+                            <span class="text-sm text-gray-500">
+                                <svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 00-2 2v2m-8 0v2a2 2 0 002 2h4a2 2 0 002 2v-2m8 0v2a2 2 0 01-2 2h-4a2 2 0 01-2-2v2"></path>
+                                </svg>
+                                {{ $user->title }}
                             </span>
                         @endif
                     </div>
@@ -79,6 +74,68 @@
                         <div class="mt-4">
                             <h4 class="text-sm font-medium text-gray-700 mb-2">Bio</h4>
                             <p class="text-sm text-gray-600">{{ $user->bio }}</p>
+                        </div>
+                    @endif
+
+                    <!-- Business Information -->
+                    @if($user->naics_codes || $user->industry_connections || $user->core_specialty_area || $user->contract_vehicles)
+                        <div class="mt-6 border-t pt-4">
+                            <h4 class="text-sm font-medium text-gray-700 mb-3">Business Information</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                @if($user->naics_codes)
+                                    <div>
+                                        <span class="font-medium text-gray-600">NAICS Codes:</span>
+                                        <span class="text-gray-800">{{ $user->naics_codes }}</span>
+                                    </div>
+                                @endif
+                                @if($user->industry_connections)
+                                    <div>
+                                        <span class="font-medium text-gray-600">Industry:</span>
+                                        <span class="text-gray-800">{{ $user->industry_connections }}</span>
+                                    </div>
+                                @endif
+                                @if($user->core_specialty_area)
+                                    <div>
+                                        <span class="font-medium text-gray-600">Specialty Area:</span>
+                                        <span class="text-gray-800">{{ $user->core_specialty_area }}</span>
+                                    </div>
+                                @endif
+                                @if($user->contract_vehicles)
+                                    <div>
+                                        <span class="font-medium text-gray-600">Contract Vehicles:</span>
+                                        <span class="text-gray-800">{{ $user->contract_vehicles }}</span>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- Preferences -->
+                    @if($user->meeting_preference && $user->meeting_preference !== 'no_preference')
+                        <div class="mt-4">
+                            <h4 class="text-sm font-medium text-gray-700 mb-2">Meeting Preference</h4>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                {{ ucwords(str_replace('_', ' ', $user->meeting_preference)) }}
+                            </span>
+                        </div>
+                    @endif
+
+                    <!-- Event Participation -->
+                    @if($user->small_business_forum || $user->small_business_matchmaker)
+                        <div class="mt-4">
+                            <h4 class="text-sm font-medium text-gray-700 mb-2">Event Participation</h4>
+                            <div class="space-y-1">
+                                @if($user->small_business_forum)
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mr-2">
+                                        Small Business Forum
+                                    </span>
+                                @endif
+                                @if($user->small_business_matchmaker)
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                        Small Business Matchmaker
+                                    </span>
+                                @endif
+                            </div>
                         </div>
                     @endif
                 </div>

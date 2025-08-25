@@ -71,6 +71,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/registrations/{registration}/qr-view', [RegistrationController::class, 'showQrCode'])->name('registrations.qr-view');
     Route::get('/registrations/{registration}/qr-print', [RegistrationController::class, 'printQrCode'])->name('registrations.qr-print');
     Route::delete('/registrations/{registration}', [RegistrationController::class, 'destroy'])->name('registrations.destroy');
+
+    // Self check-in routes
+    Route::middleware(['auth'])->group(function () {
+        Route::get('/self-checkin', [App\Http\Controllers\SelfCheckInController::class, 'index'])->name('self-checkin.index');
+        Route::post('/self-checkin/qr-code', [App\Http\Controllers\SelfCheckInController::class, 'processQrCode'])->name('self-checkin.qr-code');
+        Route::post('/self-checkin/manual', [App\Http\Controllers\SelfCheckInController::class, 'manualCheckIn'])->name('self-checkin.manual');
+    });
 });
 
 // Admin routes

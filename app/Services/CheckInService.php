@@ -53,6 +53,38 @@ class CheckInService
     }
 
     /**
+     * Check in user via registration
+     */
+    public function checkInUser(Registration $registration, string $method = 'qr_code', string $notes = ''): CheckIn
+    {
+        // Check if already checked in
+        if ($registration->checkIn) {
+            return $registration->checkIn;
+        }
+
+        $checkIn = new CheckIn([
+            'registration_id' => $registration->id,
+            'checked_in_at' => now(),
+            'check_in_method' => $method,
+            'notes' => $notes,
+            'checked_in_by' => auth()->id(),
+        ]);
+
+        $checkIn->save();
+
+        Log::info('User checked in', [
+            'registration_id' => $registration->id,
+            'user_id' => $registration->user_id,
+            'event_id' => $registration->event_id,
+            'method' => $method,
+            'notes' => $notes,
+            'checked_in_by' => auth()->id(),
+        ]);
+
+        return $checkIn;
+    }
+
+    /**
      * Get check-in statistics for event
      */
     public function getEventCheckInStats($eventId): array

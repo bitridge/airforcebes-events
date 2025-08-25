@@ -89,18 +89,177 @@
                     @enderror
                 </div>
 
-                <!-- Organization -->
-                <div>
-                    <label for="organization" class="block text-sm font-medium text-gray-700">Organization</label>
-                    <input type="text" 
-                           id="organization" 
-                           name="organization" 
-                           value="{{ old('organization', $user->organization) }}" 
-                           placeholder="Your company or organization"
-                           class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                    @error('organization')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
+                <!-- First Name and Last Name -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="first_name" class="block text-sm font-medium text-gray-700">First Name</label>
+                        <input type="text" 
+                               id="first_name" 
+                               name="first_name" 
+                               value="{{ old('first_name', $user->first_name) }}" 
+                               required
+                               class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        @error('first_name')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
+                        <input type="text" 
+                               id="last_name" 
+                               name="last_name" 
+                               value="{{ old('last_name', $user->last_name) }}" 
+                               required
+                               class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        @error('last_name')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+
+                <!-- Organization Name and Job Title -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="organization_name" class="block text-sm font-medium text-gray-700">Organization Name</label>
+                        <input type="text" 
+                               id="organization_name" 
+                               name="organization_name" 
+                               value="{{ old('organization_name', $user->organization_name) }}" 
+                               placeholder="Your company or organization"
+                               class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        @error('organization_name')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="title" class="block text-sm font-medium text-gray-700">Job Title</label>
+                        <input type="text" 
+                               id="title" 
+                               name="title" 
+                               value="{{ old('title', $user->title) }}" 
+                               placeholder="Your job title or position"
+                               class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        @error('title')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+
+                <!-- Business Information -->
+                <div class="border-t pt-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Business Information</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="naics_codes" class="block text-sm font-medium text-gray-700">NAICS Codes</label>
+                            <input type="text" 
+                                   id="naics_codes" 
+                                   name="naics_codes" 
+                                   value="{{ old('naics_codes', $user->naics_codes) }}" 
+                                   placeholder="e.g., 541511, 541512"
+                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            @error('naics_codes')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label for="industry_connections" class="block text-sm font-medium text-gray-700">Industry Connections</label>
+                            <input type="text" 
+                                   id="industry_connections" 
+                                   name="industry_connections" 
+                                   value="{{ old('industry_connections', $user->industry_connections) }}" 
+                                   placeholder="e.g., Technology, Defense, Healthcare"
+                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            @error('industry_connections')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div>
+                            <label for="core_specialty_area" class="block text-sm font-medium text-gray-700">Core Specialty Area</label>
+                            <input type="text" 
+                                   id="core_specialty_area" 
+                                   name="core_specialty_area" 
+                                   value="{{ old('core_specialty_area', $user->core_specialty_area) }}" 
+                                   placeholder="e.g., Software Development, Cybersecurity"
+                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            @error('core_specialty_area')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label for="contract_vehicles" class="block text-sm font-medium text-gray-700">Contract Vehicles</label>
+                            <input type="text" 
+                                   id="contract_vehicles" 
+                                   name="contract_vehicles" 
+                                   value="{{ old('contract_vehicles', $user->contract_vehicles) }}" 
+                                   placeholder="e.g., GSA MAS, IDIQ, 8(a)"
+                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            @error('contract_vehicles')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preferences -->
+                <div class="border-t pt-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Preferences</h3>
+                    
+                    <div>
+                        <label for="meeting_preference" class="block text-sm font-medium text-gray-700">Meeting Preference</label>
+                        <select id="meeting_preference" 
+                                name="meeting_preference" 
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="no_preference" {{ old('meeting_preference', $user->meeting_preference) == 'no_preference' ? 'selected' : '' }}>No Preference</option>
+                            <option value="in_person" {{ old('meeting_preference', $user->meeting_preference) == 'in_person' ? 'selected' : '' }}>In Person</option>
+                            <option value="virtual" {{ old('meeting_preference', $user->meeting_preference) == 'virtual' ? 'selected' : '' }}>Virtual</option>
+                            <option value="hybrid" {{ old('meeting_preference', $user->meeting_preference) == 'hybrid' ? 'selected' : '' }}>Hybrid</option>
+                            <option value="prefer_morning" {{ old('meeting_preference', $user->meeting_preference) == 'prefer_morning' ? 'selected' : '' }}>Prefer Morning</option>
+                            <option value="prefer_afternoon" {{ old('meeting_preference', $user->meeting_preference) == 'prefer_afternoon' ? 'selected' : '' }}>Prefer Afternoon</option>
+                            <option value="prefer_evening" {{ old('meeting_preference', $user->meeting_preference) == 'prefer_evening' ? 'selected' : '' }}>Prefer Evening</option>
+                        </select>
+                        @error('meeting_preference')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+
+                <!-- Event Participation -->
+                <div class="border-t pt-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Event Participation</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <input type="checkbox" 
+                                   id="small_business_forum" 
+                                   name="small_business_forum" 
+                                   value="1" 
+                                   {{ old('small_business_forum', $user->small_business_forum) ? 'checked' : '' }}
+                                   class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="small_business_forum" class="ml-2 block text-sm text-gray-900">
+                                Small Business Forum: Increasing the Defense Industrial Base
+                            </label>
+                        </div>
+
+                        <div class="flex items-center">
+                            <input type="checkbox" 
+                                   id="small_business_matchmaker" 
+                                   name="small_business_matchmaker" 
+                                   value="1" 
+                                   {{ old('small_business_matchmaker', $user->small_business_matchmaker) ? 'checked' : '' }}
+                                   class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="small_business_matchmaker" class="ml-2 block text-sm text-gray-900">
+                                Small Business Matchmaker
+                            </label>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Bio -->

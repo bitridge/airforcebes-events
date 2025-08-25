@@ -169,28 +169,189 @@
                                             <p class="mt-1 text-sm text-yellow-700">The registration deadline for this event has passed.</p>
                                         </div>
                                     @else
-                                        <form action="{{ route('registrations.store', $event->slug) }}" method="POST" class="space-y-4">
+                                                                                <form action="{{ route('registrations.store', $event->slug) }}" method="POST" class="space-y-6" id="registrationForm">
                                             @csrf
                                             <input type="hidden" name="event_id" value="{{ $event->id }}">
                                             
-                                            <div>
-                                                <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Additional Notes (Optional)</label>
-                                                <textarea id="notes" name="notes" rows="3" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Any special requirements or notes..."></textarea>
-                                            </div>
-                                            
-                                            <div class="flex items-start">
-                                                <div class="flex items-center h-5">
-                                                    <input id="terms_accepted" name="terms_accepted" type="checkbox" required class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2">
+                                            <!-- Personal Information Section -->
+                                            <div class="bg-gray-50 p-4 rounded-lg">
+                                                <h4 class="text-lg font-medium text-gray-900 mb-4">Personal Information</h4>
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label for="first_name" class="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+                                                        <input type="text" id="first_name" name="first_name" required class="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" value="{{ old('first_name', auth()->user()->name ?? '') }}">
+                                                    </div>
+                                                    <div>
+                                                        <label for="last_name" class="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+                                                        <input type="text" id="last_name" name="last_name" required class="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" value="{{ old('last_name') }}">
+                                                    </div>
+                                                    <div>
+                                                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                                                        <input type="email" id="email" name="email" required class="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" value="{{ old('email', auth()->user()->email ?? '') }}">
+                                                    </div>
+                                                    <div>
+                                                        <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                                                        <input type="tel" id="phone" name="phone" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" value="{{ old('phone', auth()->user()->phone ?? '') }}">
+                                                    </div>
+                                                    <div class="md:col-span-2">
+                                                        <label for="organization_name" class="block text-sm font-medium text-gray-700 mb-1">Organization Name *</label>
+                                                        <input type="text" id="organization_name" name="organization_name" required class="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" value="{{ old('organization_name') }}">
+                                                    </div>
+                                                    <div class="md:col-span-2">
+                                                        <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Job Title</label>
+                                                        <input type="text" id="title" name="title" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" value="{{ old('title') }}">
+                                                    </div>
                                                 </div>
-                                                <div class="ml-3 text-sm">
-                                                    <label for="terms_accepted" class="font-medium text-gray-700">I accept the <a href="#" class="text-red-600 hover:text-red-500">terms and conditions</a></label>
+                                            </div>
+
+                                            <!-- Registration Type Section -->
+                                            <div class="bg-gray-50 p-4 rounded-lg">
+                                                <h4 class="text-lg font-medium text-gray-900 mb-4">Registration Type</h4>
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Type *</label>
+                                                        <select id="type" name="type" required class="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                            <option value="">Select Type</option>
+                                                            <option value="registration" {{ old('type') == 'registration' ? 'selected' : '' }}>Registration (CT)</option>
+                                                            <option value="checkin" {{ old('type') == 'checkin' ? 'selected' : '' }}>Check-in (CT)</option>
+                                                        </select>
+                                                    </div>
+                                                    <div id="checkin_type_container" class="hidden">
+                                                        <label for="checkin_type" class="block text-sm font-medium text-gray-700 mb-1">Check-in Type</label>
+                                                        <select id="checkin_type" name="checkin_type" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                            <option value="">Select Check-in Type</option>
+                                                            <option value="in_person" {{ old('checkin_type') == 'in_person' ? 'selected' : '' }}>In Person</option>
+                                                            <option value="virtual" {{ old('checkin_type') == 'virtual' ? 'selected' : '' }}>Virtual</option>
+                                                            <option value="hybrid" {{ old('checkin_type') == 'hybrid' ? 'selected' : '' }}>Hybrid</option>
+                                                        </select>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            
-                                            <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200">
-                                                Register for Event
-                                            </button>
+
+                                            <!-- Business Information Section -->
+                                            <div class="bg-gray-50 p-4 rounded-lg">
+                                                <h4 class="text-lg font-medium text-gray-900 mb-4">Business Information</h4>
+                                                <div class="space-y-4">
+                                                    <div>
+                                                        <label for="naics_codes" class="block text-sm font-medium text-gray-700 mb-1">NAICS Codes</label>
+                                                        <textarea id="naics_codes" name="naics_codes" rows="2" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Enter NAICS codes...">{{ old('naics_codes') }}</textarea>
+                                                    </div>
+                                                    <div>
+                                                        <label for="industry_connections" class="block text-sm font-medium text-gray-700 mb-1">Industry Connections</label>
+                                                        <textarea id="industry_connections" name="industry_connections" rows="2" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Describe your industry connections...">{{ old('industry_connections') }}</textarea>
+                                                    </div>
+                                                    <div>
+                                                        <label for="core_specialty_area" class="block text-sm font-medium text-gray-700 mb-1">Core Specialty Area</label>
+                                                        <textarea id="core_specialty_area" name="core_specialty_area" rows="2" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Describe your core specialty area...">{{ old('core_specialty_area') }}</textarea>
+                                                    </div>
+                                                    <div>
+                                                        <label for="contract_vehicles" class="block text-sm font-medium text-gray-700 mb-1">Contract Vehicles</label>
+                                                        <textarea id="contract_vehicles" name="contract_vehicles" rows="2" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="List your contract vehicles...">{{ old('contract_vehicles') }}</textarea>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Preferences Section -->
+                                            <div class="bg-gray-50 p-4 rounded-lg">
+                                                <h4 class="text-lg font-medium text-gray-900 mb-4">Preferences</h4>
+                                                <div class="space-y-4">
+                                                    <div>
+                                                        <label for="meeting_preference" class="block text-sm font-medium text-gray-700 mb-1">Meeting Preference *</label>
+                                                        <select id="meeting_preference" name="meeting_preference" required class="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                            <option value="">Select Preference</option>
+                                                            <option value="in_person" {{ old('meeting_preference') == 'in_person' ? 'selected' : '' }}>In Person</option>
+                                                            <option value="virtual" {{ old('meeting_preference') == 'virtual' ? 'selected' : '' }}>Virtual</option>
+                                                            <option value="hybrid" {{ old('meeting_preference') == 'hybrid' ? 'selected' : '' }}>Hybrid</option>
+                                                            <option value="no_preference" {{ old('meeting_preference') == 'no_preference' ? 'selected' : '' }}>No Preference</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Event Specific Section -->
+                                            <div class="bg-gray-50 p-4 rounded-lg">
+                                                <h4 class="text-lg font-medium text-gray-900 mb-4">Event Participation</h4>
+                                                <div class="space-y-4">
+                                                    <div class="flex items-center">
+                                                        <input id="small_business_forum" name="small_business_forum" type="checkbox" value="1" {{ old('small_business_forum') ? 'checked' : '' }} class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2">
+                                                        <label for="small_business_forum" class="ml-3 text-sm font-medium text-gray-700">Small Business Forum: Increasing the Defense Industrial Base</label>
+                                                    </div>
+                                                    <div class="flex items-center">
+                                                        <input id="small_business_matchmaker" name="small_business_matchmaker" type="checkbox" value="1" {{ old('small_business_matchmaker') ? 'checked' : '' }} class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2">
+                                                        <label for="small_business_matchmaker" class="ml-3 text-sm font-medium text-gray-700">Small Business Matchmaker</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Additional Notes Section -->
+                                            <div class="bg-gray-50 p-4 rounded-lg">
+                                                <h4 class="text-lg font-medium text-gray-900 mb-4">Additional Information</h4>
+                                                <div>
+                                                    <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Additional Notes (Optional)</label>
+                                                    <textarea id="notes" name="notes" rows="3" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Any special requirements or notes...">{{ old('notes') }}</textarea>
+                                                </div>
+                                            </div>
+
+                                            <!-- Terms and Submit -->
+                                            <div class="bg-gray-50 p-4 rounded-lg">
+                                                <div class="flex items-start">
+                                                    <div class="flex items-center h-5">
+                                                        <input id="terms_accepted" name="terms_accepted" type="checkbox" required class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2">
+                                                    </div>
+                                                    <div class="ml-3 text-sm">
+                                                        <label for="terms_accepted" class="font-medium text-gray-700">I accept the <a href="#" class="text-red-600 hover:text-red-500">terms and conditions</a></label>
+                                                    </div>
+                                                </div>
+                                                
+                                                <button type="submit" class="w-full mt-4 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200">
+                                                    Register for Event
+                                                </button>
+                                            </div>
                                         </form>
+
+                                                <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const typeSelect = document.getElementById('type');
+                            const checkinTypeContainer = document.getElementById('checkin_type_container');
+                            const checkinTypeSelect = document.getElementById('checkin_type');
+
+                            // Handle type selection change
+                            typeSelect.addEventListener('change', function() {
+                                if (this.value === 'checkin') {
+                                    checkinTypeContainer.classList.remove('hidden');
+                                    checkinTypeSelect.required = true;
+                                } else {
+                                    checkinTypeContainer.classList.add('hidden');
+                                    checkinTypeSelect.required = false;
+                                    checkinTypeSelect.value = '';
+                                }
+                            });
+
+                            // Form submission handling
+                            document.getElementById('registrationForm').addEventListener('submit', function(e) {
+                                console.log('Registration form submitted');
+                                console.log('Form action:', this.action);
+                                console.log('Form method:', this.method);
+                                console.log('CSRF token:', document.querySelector('input[name="_token"]').value);
+                                console.log('Event ID:', document.querySelector('input[name="event_id"]').value);
+                                console.log('First Name:', document.querySelector('input[name="first_name"]').value);
+                                console.log('Last Name:', document.querySelector('input[name="last_name"]').value);
+                                console.log('Email:', document.querySelector('input[name="email"]').value);
+                                console.log('Organization:', document.querySelector('input[name="organization_name"]').value);
+                                console.log('Type:', document.querySelector('select[name="type"]').value);
+                                console.log('Meeting Preference:', document.querySelector('select[name="meeting_preference"]').value);
+                                console.log('Small Business Forum:', document.querySelector('input[name="small_business_forum"]').checked);
+                                console.log('Small Business Matchmaker:', document.querySelector('input[name="small_business_matchmaker"]').checked);
+                                console.log('Notes:', document.querySelector('textarea[name="notes"]').value);
+                                console.log('Terms accepted:', document.querySelector('input[name="terms_accepted"]').checked);
+                                
+                                // Show loading state
+                                const submitBtn = this.querySelector('button[type="submit"]');
+                                submitBtn.disabled = true;
+                                submitBtn.textContent = 'Processing...';
+                            });
+                        });
+                        </script>
                                     @endif
                                 @endif
                             @else

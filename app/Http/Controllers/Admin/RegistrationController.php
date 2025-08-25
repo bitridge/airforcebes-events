@@ -745,9 +745,22 @@ class RegistrationController extends Controller
                         ['email' => $email],
                         [
                             'name' => $firstName . ' ' . $lastName,
+                            'first_name' => $firstName,
+                            'last_name' => $lastName,
                             'role' => 'attendee',
                             'password' => bcrypt($this->generateRandomPassword()),
                             'email_verified_at' => now(),
+                            'phone' => trim($row[$mapping['phone'] ?? ''] ?? ''),
+                            'organization' => trim($row[$mapping['organization_name'] ?? ''] ?? ''),
+                            'organization_name' => trim($row[$mapping['organization_name'] ?? ''] ?? ''),
+                            'title' => trim($row[$mapping['title'] ?? ''] ?? ''),
+                            'naics_codes' => trim($row[$mapping['naics_codes'] ?? ''] ?? ''),
+                            'industry_connections' => trim($row[$mapping['industry_connections'] ?? ''] ?? ''),
+                            'core_specialty_area' => trim($row[$mapping['core_specialty_area'] ?? ''] ?? ''),
+                            'contract_vehicles' => trim($row[$mapping['contract_vehicles'] ?? ''] ?? ''),
+                            'meeting_preference' => $this->normalizeMeetingPreference(trim($row[$mapping['meeting_preference'] ?? ''] ?? '')),
+                            'small_business_forum' => $this->normalizeBoolean(trim($row[$mapping['small_business_forum'] ?? ''] ?? '')),
+                            'small_business_matchmaker' => $this->normalizeBoolean(trim($row[$mapping['small_business_matchmaker'] ?? ''] ?? '')),
                         ]
                     );
 
@@ -785,12 +798,19 @@ class RegistrationController extends Controller
                         'qr_code_data' => $this->generateQrCodeData($event, $user),
                         'first_name' => $firstName,
                         'last_name' => $lastName,
+                        'email' => $email,
                         'phone' => trim($row[$mapping['phone'] ?? ''] ?? ''),
-                        'organization' => trim($row[$mapping['organization'] ?? ''] ?? ''),
-                        'dietary_requirements' => trim($row[$mapping['dietary_requirements'] ?? ''] ?? ''),
-                        'special_accommodations' => trim($row[$mapping['special_accommodations'] ?? ''] ?? ''),
-                        'emergency_contact_name' => trim($row[$mapping['emergency_contact_name'] ?? ''] ?? ''),
-                        'emergency_contact_phone' => trim($row[$mapping['emergency_contact_phone'] ?? ''] ?? ''),
+                        'organization_name' => trim($row[$mapping['organization_name'] ?? ''] ?? ''),
+                        'title' => trim($row[$mapping['title'] ?? ''] ?? ''),
+                        'type' => trim($row[$mapping['type'] ?? ''] ?? 'registration'),
+                        'checkin_type' => trim($row[$mapping['checkin_type'] ?? ''] ?? 'standard'),
+                        'naics_codes' => trim($row[$mapping['naics_codes'] ?? ''] ?? ''),
+                        'industry_connections' => trim($row[$mapping['industry_connections'] ?? ''] ?? ''),
+                        'core_specialty_area' => trim($row[$mapping['core_specialty_area'] ?? ''] ?? ''),
+                        'contract_vehicles' => trim($row[$mapping['contract_vehicles'] ?? ''] ?? ''),
+                        'meeting_preference' => $this->normalizeMeetingPreference(trim($row[$mapping['meeting_preference'] ?? ''] ?? '')),
+                        'small_business_forum' => $this->normalizeBoolean(trim($row[$mapping['small_business_forum'] ?? ''] ?? '')),
+                        'small_business_matchmaker' => $this->normalizeBoolean(trim($row[$mapping['small_business_matchmaker'] ?? ''] ?? '')),
                         'notes' => trim($row[$mapping['notes'] ?? ''] ?? ''),
                         'registration_date' => now(),
                     ]);
@@ -888,5 +908,52 @@ class RegistrationController extends Controller
         $password = str_shuffle($password . 'A' . 'a' . '1' . '!');
         
         return $password;
+    }
+
+    /**
+     * Normalize meeting preference values from CSV to valid enum values.
+     */
+    private function normalizeMeetingPreference(string $value): string
+    {
+        $value = strtolower(trim($value));
+        
+        // Map common CSV values to valid enum values
+        $mapping = [
+            'in person' => 'in_person',
+            'in-person' => 'in_person',
+            'virtual' => 'virtual',
+            'hybrid' => 'hybrid',
+            'no preference' => 'no_preference',
+            'no_preference' => 'no_preference',
+            'prefer morning' => 'prefer_morning',
+            'prefer afternoon' => 'prefer_afternoon',
+            'prefer evening' => 'prefer_evening',
+            '' => 'no_preference',
+        ];
+        
+        return $mapping[$value] ?? 'no_preference';
+    }
+
+    /**
+     * Normalize boolean values from CSV to valid boolean values.
+     */
+    private function normalizeBoolean(string $value): bool
+    {
+        $value = strtolower(trim($value));
+        
+        // Map common CSV values to boolean
+        $trueValues = ['true', '1', 'yes', 'y', 'on', 'enabled'];
+        $falseValues = ['false', '0', 'no', 'n', 'off', 'disabled', ''];
+        
+        if (in_array($value, $trueValues)) {
+            return true;
+        }
+        
+        if (in_array($value, $falseValues)) {
+            return false;
+        }
+        
+        // Default to false for unknown values
+        return false;
     }
 }

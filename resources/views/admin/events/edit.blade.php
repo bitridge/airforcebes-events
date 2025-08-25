@@ -184,9 +184,17 @@
                                     <p class="text-sm text-gray-500 mt-1">Current image</p>
                                 </div>
                             @endif
-                            <input type="file" id="featured_image" name="featured_image" accept="image/*"
+                            <input type="file" id="featured_image" name="featured_image" accept="image/*" onchange="previewImage(this)"
                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                            <p class="mt-1 text-sm text-gray-500">PNG, JPG, GIF up to 2MB. Leave empty to keep current image.</p>
+                            <p class="mt-1 text-sm text-gray-500">PNG, JPG, GIF up to 5MB. Minimum dimensions: 300x200px. Leave empty to keep current image.</p>
+                            
+                            <!-- Image Preview -->
+                            <div id="imagePreview" class="mt-3 hidden">
+                                <img id="previewImg" src="" alt="Preview" class="max-w-xs rounded-lg shadow-sm">
+                                <button type="button" onclick="removeImage()" class="mt-2 text-sm text-red-600 hover:text-red-800">
+                                    Remove New Image
+                                </button>
+                            </div>
                             @error('featured_image')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -261,5 +269,42 @@
                 });
             });
         });
+
+        // Image preview functionality
+        function previewImage(input) {
+            const file = input.files[0];
+            const preview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            
+            if (file) {
+                // Validate file size (5MB = 5 * 1024 * 1024 bytes)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size must be less than 5MB');
+                    input.value = '';
+                    return;
+                }
+                
+                // Validate file type
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select an image file');
+                    input.value = '';
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    preview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.classList.add('hidden');
+            }
+        }
+
+        function removeImage() {
+            document.getElementById('featured_image').value = '';
+            document.getElementById('imagePreview').classList.add('hidden');
+        }
     </script>
 @endsection

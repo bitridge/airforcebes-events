@@ -78,8 +78,32 @@ class EventController extends Controller
 
             // Handle image upload
             if ($request->hasFile('featured_image')) {
-                $path = $request->file('featured_image')->store('events', 'public');
-                $data['featured_image'] = $path;
+                try {
+                    $file = $request->file('featured_image');
+                    Log::info('Processing image upload', [
+                        'original_name' => $file->getClientOriginalName(),
+                        'size' => $file->getSize(),
+                        'mime_type' => $file->getMimeType(),
+                        'extension' => $file->getClientOriginalExtension(),
+                    ]);
+
+                    $path = $file->store('events', 'public');
+                    $data['featured_image'] = $path;
+                    
+                    Log::info('Image uploaded successfully', [
+                        'stored_path' => $path,
+                        'full_url' => Storage::disk('public')->url($path),
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('Image upload failed', [
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString(),
+                    ]);
+                    
+                    return back()
+                        ->withInput()
+                        ->with('error', 'Failed to upload image: ' . $e->getMessage());
+                }
             }
 
             $event = Event::create($data);
@@ -132,12 +156,37 @@ class EventController extends Controller
             
             // Handle image upload
             if ($request->hasFile('featured_image')) {
-                // Delete old image
-                if ($event->featured_image) {
-                    Storage::disk('public')->delete($event->featured_image);
+                try {
+                    // Delete old image
+                    if ($event->featured_image) {
+                        Storage::disk('public')->delete($event->featured_image);
+                    }
+                    
+                    $file = $request->file('featured_image');
+                    Log::info('Processing image update', [
+                        'original_name' => $file->getClientOriginalName(),
+                        'size' => $file->getSize(),
+                        'mime_type' => $file->getMimeType(),
+                        'extension' => $file->getClientOriginalExtension(),
+                    ]);
+
+                    $path = $file->store('events', 'public');
+                    $data['featured_image'] = $path;
+                    
+                    Log::info('Image updated successfully', [
+                        'stored_path' => $path,
+                        'full_url' => Storage::disk('public')->url($path),
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('Image update failed', [
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString(),
+                    ]);
+                    
+                    return back()
+                        ->withInput()
+                        ->with('error', 'Failed to update image: ' . $e->getMessage());
                 }
-                $path = $request->file('featured_image')->store('events', 'public');
-                $data['featured_image'] = $path;
             }
 
             $event->update($data);

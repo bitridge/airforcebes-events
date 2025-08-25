@@ -200,7 +200,7 @@ class CheckIn extends Model
     protected function formattedCheckedInAt(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->checked_in_at?->format('M j, Y g:i A')
+            get: fn () => $this->checked_in_at?->format('M j, Y H:i')
         );
     }
 

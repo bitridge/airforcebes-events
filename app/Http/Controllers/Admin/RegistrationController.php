@@ -671,4 +671,160 @@ class RegistrationController extends Controller
             abort(500, 'Failed to load registration card print view');
         }
     }
+
+    public function importCsv(Request $request): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $request->validate([
+                'event_id' => 'required|exists:events,id',
+                'csv_file' => 'required|file|mimes:csv,txt|max:2048',
+                'mapping' => 'required|array',
+                'mapping.first_name' => 'required|string',
+                'mapping.last_name' => 'required|string',
+                'mapping.email' => 'required|string',
+            ]);
+
+            $event = Event::findOrFail($request->event_id);
+            $file = $request->file('csv_file');
+            $mapping = $request->input('mapping');
+
+            // Read CSV file
+            $csvData = array_map('str_getcsv', file($file->getPathname()));
+            $headers = array_shift($csvData); // Remove header row
+
+            $imported = 0;
+            $skipped = 0;
+            $errors = [];
+
+            DB::beginTransaction();
+
+            foreach ($csvData as $rowIndex => $row) {
+                try {
+                    // Skip empty rows
+                    if (empty(array_filter($row))) {
+                        continue;
+                    }
+
+                    // Map CSV columns to fields
+                    $firstName = trim($row[$mapping['first_name']] ?? '');
+                    $lastName = trim($row[$mapping['last_name'] ?? '']);
+                    $email = trim($row[$mapping['email'] ?? '']);
+
+                    // Validate required fields
+                    if (empty($firstName) || empty($lastName) || empty($email)) {
+                        $errors[] = "Row " . ($rowIndex + 2) . ": Missing required fields";
+                        continue;
+                    }
+
+                    // Check if user already exists
+                    $user = User::firstOrCreate(
+                        ['email' => $email],
+                        [
+                            'name' => $firstName . ' ' . $lastName,
+                            'role' => 'attendee',
+                            'email_verified_at' => now(),
+                        ]
+                    );
+
+                    // Check if registration already exists for this event
+                    $existingRegistration = Registration::where('event_id', $event->id)
+                        ->where('user_id', $user->id)
+                        ->first();
+
+                    if ($existingRegistration) {
+                        $skipped++;
+                        continue;
+                    }
+
+                    // Create registration
+                    $registration = Registration::create([
+                        'event_id' => $event->id,
+                        'user_id' => $user->id,
+                        'status' => 'confirmed', // Automatically confirmed
+                        'registration_code' => $this->generateRegistrationCode(),
+                        'qr_code_data' => $this->generateQrCodeData($event, $user),
+                        'first_name' => $firstName,
+                        'last_name' => $lastName,
+                        'phone' => trim($row[$mapping['phone'] ?? ''] ?? ''),
+                        'organization' => trim($row[$mapping['organization'] ?? ''] ?? ''),
+                        'dietary_requirements' => trim($row[$mapping['dietary_requirements'] ?? ''] ?? ''),
+                        'special_accommodations' => trim($row[$mapping['special_accommodations'] ?? ''] ?? ''),
+                        'emergency_contact_name' => trim($row[$mapping['emergency_contact_name'] ?? ''] ?? ''),
+                        'emergency_contact_phone' => trim($row[$mapping['emergency_contact_phone'] ?? ''] ?? ''),
+                        'notes' => trim($row[$mapping['notes'] ?? ''] ?? ''),
+                        'registration_date' => now(),
+                    ]);
+
+                    $imported++;
+
+                    // Send registration confirmation email
+                    try {
+                        Mail::to($user->email)->send(new RegistrationCard($registration));
+                    } catch (\Exception $e) {
+                        Log::warning('Failed to send registration email', [
+                            'registration_id' => $registration->id,
+                            'email' => $user->email,
+                            'error' => $e->getMessage()
+                        ]);
+                    }
+
+                } catch (\Exception $e) {
+                    $errors[] = "Row " . ($rowIndex + 2) . ": " . $e->getMessage();
+                    continue;
+                }
+            }
+
+            DB::commit();
+
+            Log::info('CSV import completed', [
+                'event_id' => $event->id,
+                'event_title' => $event->title,
+                'imported' => $imported,
+                'skipped' => $skipped,
+                'errors' => $errors,
+                'admin_user_id' => auth()->id(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Successfully imported {$imported} registrations. {$skipped} duplicates skipped.",
+                'imported' => $imported,
+                'skipped' => $skipped,
+                'errors' => $errors,
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('CSV import failed', [
+                'error' => $e->getMessage(),
+                'admin_user_id' => auth()->id(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Import failed: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    private function generateRegistrationCode(): string
+    {
+        do {
+            $code = strtoupper(substr(md5(uniqid()), 0, 8));
+        } while (Registration::where('registration_code', $code)->exists());
+
+        return $code;
+    }
+
+    private function generateQrCodeData(Event $event, User $user): string
+    {
+        return json_encode([
+            'event_id' => $event->id,
+            'user_id' => $user->id,
+            'registration_code' => $this->generateRegistrationCode(),
+            'timestamp' => now()->timestamp,
+        ]);
+    }
 }

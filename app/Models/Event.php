@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Str;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 class Event extends Model
 {
@@ -452,27 +453,27 @@ class Event extends Model
     }
 
     /**
-     * Get formatted start time.
+     * Get formatted start time in 24-hour format.
      */
     protected function formattedStartTime(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->start_time ? Carbon::createFromFormat('H:i:s', $this->start_time)->format('g:i A') : null
+            get: fn () => $this->start_time ? Carbon::createFromFormat('H:i:s', $this->start_time)->format('H:i') : null
         );
     }
 
     /**
-     * Get formatted end time.
+     * Get formatted end time in 24-hour format.
      */
     protected function formattedEndTime(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->end_time ? Carbon::createFromFormat('H:i:s', $this->end_time)->format('g:i A') : null
+            get: fn () => $this->end_time ? Carbon::createFromFormat('H:i:s', $this->end_time)->format('H:i') : null
         );
     }
 
     /**
-     * Get formatted time range.
+     * Get formatted time range in 24-hour format.
      */
     protected function formattedTimeRange(): Attribute
     {
@@ -480,8 +481,8 @@ class Event extends Model
             get: function () {
                 if (!$this->start_time) return null;
                 
-                $start = Carbon::createFromFormat('H:i:s', $this->start_time)->format('g:i A');
-                $end = $this->end_time ? Carbon::createFromFormat('H:i:s', $this->end_time)->format('g:i A') : null;
+                $start = Carbon::createFromFormat('H:i:s', $this->start_time)->format('H:i');
+                $end = $this->end_time ? Carbon::createFromFormat('H:i:s', $this->end_time)->format('H:i') : null;
                 
                 return $end ? "{$start} - {$end}" : $start;
             }
@@ -546,7 +547,7 @@ class Event extends Model
                     'is_open' => $isOpen,
                     'reason' => $reason,
                     'deadline' => $this->registration_deadline,
-                    'deadline_formatted' => $this->registration_deadline?->format('M j, Y g:i A'),
+                    'deadline_formatted' => $this->registration_deadline?->format('M j, Y H:i'),
                 ];
             }
         );
@@ -1262,5 +1263,37 @@ class Event extends Model
     public function getActiveCustomFields()
     {
         return $this->customFields()->active()->ordered()->get();
+    }
+
+    /**
+     * Get the featured image URL.
+     */
+    public function getFeaturedImageUrlAttribute(): ?string
+    {
+        if (!$this->featured_image) {
+            return null;
+        }
+
+        return Storage::disk('public')->url($this->featured_image);
+    }
+
+    /**
+     * Get the featured image path.
+     */
+    public function getFeaturedImagePathAttribute(): ?string
+    {
+        if (!$this->featured_image) {
+            return null;
+        }
+
+        return Storage::disk('public')->path($this->featured_image);
+    }
+
+    /**
+     * Check if the event has a featured image.
+     */
+    public function getHasFeaturedImageAttribute(): bool
+    {
+        return !empty($this->featured_image) && Storage::disk('public')->exists($this->featured_image);
     }
 }

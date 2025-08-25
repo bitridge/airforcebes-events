@@ -107,23 +107,7 @@ class SettingsSeeder extends Seeder
                 'sort_order' => 6,
                 'is_public' => false,
             ],
-            [
-                'key' => 'app.time_format',
-                'value' => 'g:i A',
-                'type' => SettingType::SELECT,
-                'group' => SettingGroup::GENERAL,
-                'label' => 'Time Format',
-                'description' => 'Default time format for the application',
-                'options' => [
-                    'g:i A' => '9:30 AM',
-                    'H:i' => '09:30',
-                    'G:i' => '9:30',
-                ],
-                'is_required' => true,
-                'default_value' => 'g:i A',
-                'sort_order' => 7,
-                'is_public' => false,
-            ],
+
             [
                 'key' => 'events.default_capacity',
                 'value' => '100',
@@ -133,7 +117,7 @@ class SettingsSeeder extends Seeder
                 'description' => 'Default maximum capacity for new events',
                 'is_required' => true,
                 'default_value' => '100',
-                'sort_order' => 8,
+                'sort_order' => 7,
                 'is_public' => false,
             ],
             [
@@ -145,7 +129,7 @@ class SettingsSeeder extends Seeder
                 'description' => 'Default days before event when registration closes',
                 'is_required' => true,
                 'default_value' => '7',
-                'sort_order' => 9,
+                'sort_order' => 8,
                 'is_public' => false,
             ],
             [
@@ -157,7 +141,7 @@ class SettingsSeeder extends Seeder
                 'description' => 'Primary contact email for the application',
                 'is_required' => true,
                 'default_value' => 'admin@airforcebes-events.com',
-                'sort_order' => 10,
+                'sort_order' => 9,
                 'is_public' => true,
             ],
             [
@@ -169,7 +153,7 @@ class SettingsSeeder extends Seeder
                 'description' => 'Primary contact phone number',
                 'is_required' => false,
                 'default_value' => '+1-555-0123',
-                'sort_order' => 11,
+                'sort_order' => 10,
                 'is_public' => true,
             ],
             [
@@ -181,7 +165,7 @@ class SettingsSeeder extends Seeder
                 'description' => 'The public URL of your application',
                 'is_required' => true,
                 'default_value' => 'https://airforcebes-events.test',
-                'sort_order' => 12,
+                'sort_order' => 11,
                 'is_public' => false,
             ],
 

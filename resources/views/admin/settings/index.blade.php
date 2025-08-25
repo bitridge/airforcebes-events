@@ -17,26 +17,16 @@
 
     <!-- Settings Tabs -->
     <div id="settings-container" x-data="{ 
-        activeTab: 'general',
-        selectedProvider: 'mailhog',
-        testingSmtp: false,
-        smtpTestResult: null
+        activeTab: 'general'
     }" 
     x-init="
         window.settingsComponent = $data;
-        $watch('smtpTestResult', value => {
-            if (value) {
-                console.log('SMTP test result updated:', value);
-            }
-        });
-        // Auto-select MailHog provider on page load
-        selectSmtpProvider('mailhog');
     "
     class="bg-white rounded-lg shadow">
         <!-- Tab Navigation -->
         <div class="border-b border-gray-200">
             <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
-                @foreach(['general', 'appearance', 'smtp', 'notifications', 'system'] as $tab)
+                @foreach(['general', 'appearance', 'notifications', 'system'] as $tab)
                     <button
                         @click="activeTab = '{{ $tab }}'"
                         :class="activeTab === '{{ $tab }}' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
@@ -239,159 +229,12 @@
                 </form>
             </div>
 
-            <!-- SMTP Settings Tab -->
-            <div x-show="activeTab === 'smtp'" class="space-y-6">
-                <div class="border-b border-gray-200 pb-4">
-                    <h3 class="text-lg font-medium text-gray-900">SMTP Settings</h3>
-                    <p class="text-sm text-gray-600 mt-1">Configure email server settings for notifications</p>
-                </div>
 
-                <!-- MailHog Information Box -->
-                <div class="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded">
-                    <h4 class="font-medium">MailHog Setup (Local Development)</h4>
-                    <p class="text-sm mt-1">For local email testing, use MailHog with these settings:</p>
-                    <ul class="text-sm mt-2 list-disc list-inside space-y-1">
-                        <li><strong>Host:</strong> localhost</li>
-                        <li><strong>Port:</strong> 1025</li>
-                        <li><strong>Encryption:</strong> None</li>
-                        <li><strong>Authentication:</strong> None</li>
-                    </ul>
-                    <p class="text-sm mt-2">Access MailHog web interface at: <a href="http://localhost:8025" target="_blank" class="underline">http://localhost:8025</a></p>
-                </div>
+
+
+
                 
-                <form id="smtp-settings-form" class="space-y-6" enctype="multipart/form-data">
-                    @csrf
-                    
-                    <!-- SMTP Provider Selection -->
-                    <div class="space-y-4">
-                        <label class="block text-sm font-medium text-gray-700">SMTP Provider</label>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            @foreach($smtpProviders as $provider => $config)
-                                <label class="relative flex cursor-pointer rounded-lg border border-gray-300 bg-white p-4 shadow-sm focus:outline-none">
-                                    <input type="radio" name="smtp_provider" value="{{ $provider }}" 
-                                           x-model="selectedProvider"
-                                           class="sr-only" aria-labelledby="{{ $provider }}-label">
-                                    <span class="flex flex-1">
-                                        <span class="flex flex-col">
-                                            <span id="{{ $provider }}-label" class="block text-sm font-medium text-gray-900">
-                                                {{ ucfirst($provider) }}
-                                            </span>
-                                            <span class="mt-1 flex items-center text-sm text-gray-500">
-                                                {{ $config['description'] }}
-                                            </span>
-                                        </span>
-                                    </span>
-                                    <span class="pointer-events-none absolute -inset-px rounded-lg border-2" 
-                                          :class="selectedProvider === '{{ $provider }}' ? 'border-blue-500' : 'border-transparent'"></span>
-                                </label>
-                            @endforeach
-                        </div>
-                    </div>
 
-                    <!-- SMTP Configuration Fields -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        @foreach($settings['smtp'] ?? [] as $setting)
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">
-                                    {{ $setting->label }}
-                                    @if($setting->is_required)
-                                        <span class="text-red-500">*</span>
-                                    @endif
-                                </label>
-                                
-                                @if($setting->description)
-                                    <p class="text-xs text-gray-500">{{ $setting->description }}</p>
-                                @endif
-
-                                @switch($setting->type->value)
-                                    @case('text')
-                                    @case('email')
-                                        <input 
-                                            type="{{ $setting->type->value }}" 
-                                            name="settings[{{ $setting->key }}]" 
-                                            value="{{ $setting->display_value }}"
-                                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                            @if($setting->is_required) required @endif
-                                        >
-                                        @break
-                                    
-                                    @case('select')
-                                        <select 
-                                            name="settings[{{ $setting->key }}]" 
-                                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                            @if($setting->is_required) required @endif
-                                        >
-                                            @foreach($setting->options ?? [] as $value => $label)
-                                                <option value="{{ $value }}" {{ $setting->display_value == $value ? 'selected' : '' }}>
-                                                    {{ $label }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        @break
-                                    
-                                    @case('integer')
-                                        <input 
-                                            type="number" 
-                                            name="settings[{{ $setting->key }}]" 
-                                            value="{{ $setting->display_value }}"
-                                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                            @if($setting->is_required) required @endif
-                                        >
-                                        @break
-                                    
-                                    @default
-                                        <input 
-                                            type="text" 
-                                            name="settings[{{ $setting->key }}]" 
-                                            value="{{ $setting->display_value }}"
-                                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                            @if($setting->is_required) required @endif
-                                        >
-                                @endswitch
-                            </div>
-                        @endforeach
-                    </div>
-                    
-                    <!-- Test Connection Button -->
-                    <div class="flex items-center space-x-4">
-                        <button type="button" 
-                                @click="testSmtpConnection()"
-                                :disabled="testingSmtp"
-                                class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:border-green-900 focus:ring ring-green-300 disabled:opacity-25 transition ease-in-out duration-150">
-                            <svg x-show="!testingSmtp" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            <svg x-show="testingSmtp" class="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            <span x-text="testingSmtp ? 'Testing...' : 'Test Connection'"></span>
-                        </button>
-                        
-                        <!-- Test Result Display -->
-                        <div x-show="smtpTestResult" class="flex items-center space-x-2">
-                            <div x-show="smtpTestResult.success" class="flex items-center text-green-600">
-                                <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                <span x-text="smtpTestResult.message"></span>
-                            </div>
-                            <div x-show="!smtpTestResult.success" class="flex items-center text-red-600">
-                                <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-                                </svg>
-                                <span x-text="smtpTestResult.message"></span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="flex justify-end">
-                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:border-blue-900 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150">
-                            Save SMTP Settings
-                        </button>
-                    </div>
-                </form>
-            </div>
 
             <!-- Notifications Settings Tab -->
             <div x-show="activeTab === 'notifications'" class="space-y-6">
@@ -593,59 +436,12 @@
 </div>
 
 <script>
-    // SMTP Provider Selection
-    function selectSmtpProvider(provider) {
-        const form = document.getElementById('smtp-settings-form');
-        const inputs = form.querySelectorAll('input[name^="settings[smtp."]');
-        
-        inputs.forEach(input => {
-            const key = input.name.match(/settings\[smtp\.([^\]]+)\]/)[1];
-            const providerConfig = window.settingsComponent.smtpProviders[provider];
-            
-            if (providerConfig && providerConfig[key] !== undefined) {
-                input.value = providerConfig[key];
-            }
-        });
-    }
 
-    // SMTP Connection Test
-    async function testSmtpConnection() {
-        const form = document.getElementById('smtp-settings-form');
-        const formData = new FormData(form);
-        
-        // Update Alpine.js state
-        window.settingsComponent.testingSmtp = true;
-        window.settingsComponent.smtpTestResult = null;
-        
-        try {
-            const response = await fetch('{{ route("settings.test-smtp") }}', {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                },
-                body: formData
-            });
-
-            const result = await response.json();
-            
-            // Update Alpine.js state with result
-            window.settingsComponent.smtpTestResult = result;
-            window.settingsComponent.testingSmtp = false;
-            
-        } catch (error) {
-            console.error('SMTP test failed:', error);
-            window.settingsComponent.smtpTestResult = {
-                success: false,
-                message: 'Connection test failed. Please check your settings and try again.'
-            };
-            window.settingsComponent.testingSmtp = false;
-        }
-    }
 
     // Cache Management Functions
     async function clearCache(type) {
         try {
-            const response = await fetch('{{ route("settings.clear-cache") }}', {
+            const response = await fetch('{{ route("admin.settings.clear-cache") }}', {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -695,7 +491,7 @@
         const formData = new FormData(this);
         
         try {
-            const response = await fetch('{{ route("settings.update-group", "general") }}', {
+            const response = await fetch('{{ route("admin.settings.update-group", "general") }}', {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -722,7 +518,7 @@
         const formData = new FormData(this);
         
         try {
-            const response = await fetch('{{ route("settings.update-group", "appearance") }}', {
+            const response = await fetch('{{ route("admin.settings.update-group", "appearance") }}', {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -743,32 +539,7 @@
         }
     });
 
-    document.getElementById('smtp-settings-form').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(this);
-        
-        try {
-            const response = await fetch('{{ route("settings.update-group", "smtp") }}', {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                },
-                body: formData
-            });
 
-            const result = await response.json();
-            
-            if (result.success) {
-                alert('SMTP settings saved successfully!');
-            } else {
-                alert('Failed to save settings: ' + result.message);
-            }
-        } catch (error) {
-            console.error('Save failed:', error);
-            alert('Failed to save settings');
-        }
-    });
 
     document.getElementById('notifications-settings-form').addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -776,7 +547,7 @@
         const formData = new FormData(this);
         
         try {
-            const response = await fetch('{{ route("settings.update-group", "notifications") }}', {
+            const response = await fetch('{{ route("admin.settings.update-group", "notifications") }}', {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -803,7 +574,7 @@
         const formData = new FormData(this);
         
         try {
-            const response = await fetch('{{ route("settings.update-group", "system") }}', {
+            const response = await fetch('{{ route("admin.settings.update-group", "system") }}', {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),

@@ -28,10 +28,9 @@ class SettingsController extends Controller
     {
         try {
             $settings = $this->settingsService->getAllSettingsGrouped();
-            $smtpProviders = $this->settingsService->getSmtpProviderTemplates();
             $cacheStats = $this->settingsService->getCacheStats();
 
-            return view('admin.settings.index', compact('settings', 'smtpProviders', 'cacheStats'));
+            return view('admin.settings.index', compact('settings', 'cacheStats'));
 
         } catch (\Exception $e) {
             Log::error('Error loading settings', [
@@ -156,48 +155,7 @@ class SettingsController extends Controller
         }
     }
 
-    /**
-     * Test SMTP connection
-     */
-    public function testSmtp(Request $request): JsonResponse
-    {
-        try {
-            $request->validate([
-                'smtp_settings' => 'required|array',
-                'smtp_settings.host' => 'required|string',
-                'smtp_settings.port' => 'required|integer',
-                'smtp_settings.username' => 'nullable|string',
-                'smtp_settings.password' => 'nullable|string',
-                'smtp_settings.encryption' => 'required|string',
-                'smtp_settings.driver' => 'required|string',
-                'smtp_settings.from_email' => 'required|email',
-                'smtp_settings.from_name' => 'required|string',
-                'smtp_settings.test_email' => 'required|email',
-            ]);
 
-            $smtpSettings = $request->input('smtp_settings');
-            $result = $this->settingsService->testSmtpConnection($smtpSettings);
-
-            Log::info('SMTP test attempted', [
-                'host' => $smtpSettings['host'],
-                'user_id' => auth()->id(),
-                'success' => $result['success'],
-            ]);
-
-            return response()->json($result);
-
-        } catch (\Exception $e) {
-            Log::error('Error testing SMTP', [
-                'error' => $e->getMessage(),
-                'user_id' => auth()->id(),
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to test SMTP: ' . $e->getMessage(),
-            ], 500);
-        }
-    }
 
     /**
      * Export settings to JSON

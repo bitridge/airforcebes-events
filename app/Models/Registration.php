@@ -176,7 +176,7 @@ class Registration extends Model
     protected function formattedRegistrationDate(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->registration_date?->format('M j, Y g:i A')
+            get: fn () => $this->registration_date?->format('M j, Y H:i')
         );
     }
 
@@ -638,6 +638,6 @@ class Registration extends Model
             return 'N/A';
         }
         
-        return $this->registration_date->format('M j, Y \a\t g:i A');
+        return $this->registration_date->format('M j, Y \a\t H:i');
     }
 }

@@ -18,7 +18,7 @@
     <!-- Settings Tabs -->
     <div x-data="{ 
         activeTab: 'general',
-        selectedProvider: 'custom',
+        selectedProvider: 'mailhog',
         testingSmtp: false,
         smtpTestResult: null
     }" 
@@ -29,6 +29,8 @@
                 console.log('SMTP test result updated:', value);
             }
         });
+        // Auto-select MailHog provider on page load
+        selectSmtpProvider('mailhog');
     "
     class="bg-white rounded-lg shadow">
         <!-- Tab Navigation -->
@@ -238,6 +240,32 @@
                 <div class="border-b border-gray-200 pb-4">
                     <h3 class="text-lg font-medium text-gray-900">SMTP Configuration</h3>
                     <p class="text-sm text-gray-600 mt-1">Configure email server settings and test connection</p>
+                </div>
+                
+                <!-- MailHog Information -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h4 class="text-sm font-medium text-blue-800">MailHog for Local Development</h4>
+                            <div class="mt-2 text-sm text-blue-700">
+                                <p>For local email testing, we recommend using <strong>MailHog</strong>. It captures all emails sent from your application and displays them in a web interface.</p>
+                                <div class="mt-2 space-y-1">
+                                    <p><strong>Setup:</strong></p>
+                                    <ul class="list-disc list-inside ml-2 space-y-1">
+                                        <li>Install MailHog: <code class="bg-blue-100 px-1 rounded">brew install mailhog</code> (macOS) or download from <a href="https://github.com/mailhog/MailHog" target="_blank" class="underline">GitHub</a></li>
+                                        <li>Start MailHog: <code class="bg-blue-100 px-1 rounded">mailhog</code></li>
+                                        <li>Access web interface: <a href="http://localhost:8025" target="_blank" class="underline">http://localhost:8025</a></li>
+                                        <li>SMTP port: <code class="bg-blue-100 px-1 rounded">1025</code></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <form id="smtp-settings-form" class="space-y-6">

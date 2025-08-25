@@ -267,36 +267,36 @@ class SettingsService
             // Temporarily update mail config
             $this->updateMailConfig($smtpSettings);
 
-            // Test SMTP connection without sending email
-            $host = $smtpSettings['host'] ?? '';
-            $port = $smtpSettings['port'] ?? 587;
-            $username = $smtpSettings['username'] ?? '';
-            $password = $smtpSettings['password'] ?? '';
-            $encryption = $smtpSettings['encryption'] ?? 'tls';
+            // Send actual test email
+            $testEmail = $smtpSettings['test_email'] ?? config('mail.from.address');
             
-            // Test basic connection
-            $connection = @fsockopen($host, $port, $errno, $errstr, 10);
+            // Set a reasonable timeout for the mail operation
+            $timeout = 15; // 15 seconds
+            $startTime = time();
             
-            if (!$connection) {
-                throw new \Exception("Could not connect to {$host}:{$port} - {$errstr} (Error {$errno})");
+            // Send test email
+            Mail::raw('This is a test email from AirforceBES Events to verify SMTP configuration.
+
+Test Details:
+- Host: ' . ($smtpSettings['host'] ?? 'N/A') . '
+- Port: ' . ($smtpSettings['port'] ?? 'N/A') . '
+- Encryption: ' . ($smtpSettings['encryption'] ?? 'N/A') . '
+- Driver: ' . ($smtpSettings['driver'] ?? 'N/A') . '
+- Timestamp: ' . now()->format('Y-m-d H:i:s') . '
+
+If you receive this email, your SMTP configuration is working correctly!', function ($message) use ($testEmail) {
+                $message->to($testEmail)
+                        ->subject('SMTP Test - AirforceBES Events - ' . now()->format('Y-m-d H:i:s'));
+            });
+            
+            // Check if operation took too long
+            if (time() - $startTime > $timeout) {
+                throw new \Exception('SMTP operation timed out after ' . $timeout . ' seconds');
             }
-            
-            // Close connection
-            fclose($connection);
-            
-            // If we have credentials, test authentication
-            if (!empty($username) && !empty($password)) {
-                // For now, just return success if connection works
-                // In a production environment, you might want to test actual authentication
-                return [
-                    'success' => true,
-                    'message' => "SMTP connection successful to {$host}:{$port}. Connection established and credentials provided.",
-                ];
-            }
-            
+
             return [
                 'success' => true,
-                'message' => "SMTP connection successful to {$host}:{$port}. Connection established.",
+                'message' => 'SMTP test successful! Test email sent to ' . $testEmail . '. Check your MailHog interface at http://localhost:8025 to see the email.',
             ];
 
         } catch (\Exception $e) {
@@ -307,7 +307,7 @@ class SettingsService
 
             return [
                 'success' => false,
-                'message' => 'SMTP connection failed: ' . $e->getMessage(),
+                'message' => 'SMTP test failed: ' . $e->getMessage() . '. Check your MailHog configuration and ensure it\'s running on port 1025.',
                 'error' => $e->getMessage(),
             ];
         }
@@ -319,6 +319,15 @@ class SettingsService
     public function getSmtpProviderTemplates(): array
     {
         return [
+            'mailhog' => [
+                'name' => 'MailHog (Local Development)',
+                'host' => '127.0.0.1',
+                'port' => 1025,
+                'encryption' => null,
+                'driver' => 'smtp',
+                'logo' => 'mailhog-logo.png',
+                'description' => 'Local email testing with MailHog - no authentication required',
+            ],
             'gmail' => [
                 'name' => 'Gmail / Google Workspace',
                 'host' => 'smtp.gmail.com',
@@ -427,15 +436,32 @@ class SettingsService
      */
     protected function updateMailConfig(array $smtpSettings): void
     {
+        // For MailHog, we need to handle null/empty values properly
+        $encryption = $smtpSettings['encryption'] ?? null;
+        
+        // MailHog typically doesn't need encryption, so set to null if empty
+        if (empty($encryption) || $encryption === 'null') {
+            $encryption = null;
+        }
+        
         config([
             'mail.default' => $smtpSettings['driver'] ?? 'smtp',
             'mail.mailers.smtp.host' => $smtpSettings['host'] ?? '',
-            'mail.mailers.smtp.port' => $smtpSettings['port'] ?? 587,
-            'mail.mailers.smtp.username' => $smtpSettings['username'] ?? '',
-            'mail.mailers.smtp.password' => $smtpSettings['password'] ?? '',
-            'mail.mailers.smtp.encryption' => $smtpSettings['encryption'] ?? 'tls',
+            'mail.mailers.smtp.port' => $smtpSettings['port'] ?? 1025,
+            'mail.mailers.smtp.username' => $smtpSettings['username'] ?? null,
+            'mail.mailers.smtp.password' => $smtpSettings['password'] ?? null,
+            'mail.mailers.smtp.encryption' => $encryption,
             'mail.from.address' => $smtpSettings['from_email'] ?? config('mail.from.address'),
             'mail.from.name' => $smtpSettings['from_name'] ?? config('mail.from.name'),
+        ]);
+        
+        // Log the configuration for debugging
+        Log::info('Mail config updated for SMTP test', [
+            'host' => $smtpSettings['host'] ?? 'N/A',
+            'port' => $smtpSettings['port'] ?? 'N/A',
+            'encryption' => $encryption,
+            'driver' => $smtpSettings['driver'] ?? 'N/A',
+            'from_email' => $smtpSettings['from_email'] ?? 'N/A',
         ]);
     }
 

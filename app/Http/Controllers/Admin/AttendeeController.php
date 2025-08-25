@@ -146,21 +146,69 @@ class AttendeeController extends Controller
     public function update(Request $request, User $attendee): \Illuminate\Http\RedirectResponse
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255|min:2',
+            'last_name' => 'required|string|max:255|min:2',
             'email' => 'required|email|unique:users,email,' . $attendee->id,
             'phone' => 'nullable|string|max:20',
-            'organization' => 'nullable|string|max:255',
+            'organization_name' => 'nullable|string|max:255',
+            'title' => 'nullable|string|max:255',
+            'naics_codes' => 'nullable|string|max:500',
+            'industry_connections' => 'nullable|string|max:500',
+            'core_specialty_area' => 'nullable|string|max:255',
+            'contract_vehicles' => 'nullable|string|max:500',
+            'meeting_preference' => 'nullable|string|in:in_person,virtual,hybrid,no_preference,prefer_morning,prefer_afternoon,prefer_evening',
+            'small_business_forum' => 'nullable|boolean',
+            'small_business_matchmaker' => 'nullable|boolean',
+            'role' => 'required|string|in:attendee,admin',
             'is_active' => 'boolean',
+            'new_password' => 'nullable|string|min:8|confirmed',
         ]);
 
         try {
             DB::beginTransaction();
 
             $oldData = $attendee->toArray();
-            $attendee->update($request->only(['name', 'email', 'phone', 'organization', 'is_active']));
+            
+            // Prepare update data
+            $updateData = [
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'organization_name' => $request->organization_name,
+                'title' => $request->title,
+                'naics_codes' => $request->naics_codes,
+                'industry_connections' => $request->industry_connections,
+                'core_specialty_area' => $request->core_specialty_area,
+                'contract_vehicles' => $request->contract_vehicles,
+                'meeting_preference' => $request->meeting_preference,
+                'small_business_forum' => $request->boolean('small_business_forum'),
+                'small_business_matchmaker' => $request->boolean('small_business_matchmaker'),
+                'role' => $request->role,
+                'is_active' => $request->boolean('is_active'),
+            ];
+
+            // Update the name field from first_name and last_name
+            $updateData['name'] = trim($request->first_name . ' ' . $request->last_name);
+
+            // Update the attendee
+            $attendee->update($updateData);
+
+            // Handle password change if provided
+            if ($request->filled('new_password')) {
+                $attendee->update([
+                    'password' => bcrypt($request->new_password)
+                ]);
+                
+                Log::info('Attendee password changed', [
+                    'attendee_id' => $attendee->id,
+                    'admin_user_id' => auth()->id(),
+                    'changed_at' => now()
+                ]);
+            }
 
             // Log changes
-            $changes = array_diff_assoc($attendee->toArray(), $oldData);
+            $changes = array_diff_assoc($attendee->fresh()->toArray(), $oldData);
             if (!empty($changes)) {
                 Log::info('Attendee profile updated', [
                     'attendee_id' => $attendee->id,
@@ -250,7 +298,7 @@ class AttendeeController extends Controller
         
         // Headers
         fputcsv($file, [
-            'Name', 'Email', 'Phone', 'Organization', 'Role', 'Status',
+            'Name', 'Email', 'Phone', 'Organization Name', 'Role', 'Status',
             'Total Registrations', 'Total Check-ins', 'First Registration', 'Last Registration'
         ]);
         
@@ -262,7 +310,7 @@ class AttendeeController extends Controller
                 $attendee->name,
                 $attendee->email,
                 $attendee->phone ?? '',
-                $attendee->organization ?? '',
+                $attendee->organization_name ?? '',
                 $attendee->role,
                 $attendee->is_active ? 'Active' : 'Inactive',
                 $attendee->registrations->count(),

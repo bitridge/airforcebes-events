@@ -24,7 +24,6 @@ class User extends Authenticatable
         'password',
         'role',
         'phone',
-        'organization',
         'is_active',
         'created_by',
         'first_name',
@@ -205,7 +204,7 @@ class User extends Authenticatable
      */
     public function scopeByOrganization($query, $organization)
     {
-        return $query->where('organization', $organization);
+        return $query->where('organization_name', $organization);
     }
 
     // =====================================================

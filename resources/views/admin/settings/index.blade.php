@@ -16,7 +16,7 @@
     @endif
 
     <!-- Settings Tabs -->
-    <div x-data="{ 
+    <div id="settings-container" x-data="{ 
         activeTab: 'general',
         selectedProvider: 'mailhog',
         testingSmtp: false,
@@ -671,6 +671,74 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Failed to save settings');
         }
     });
-});
-</script>
-@endsection
+        });
+    </script>
+
+    <!-- Fallback JavaScript for production -->
+    <script>
+        // Debug information
+        document.addEventListener('DOMContentLoaded', function() {
+            // Update debug info
+            if (document.getElementById('alpine-status')) {
+                document.getElementById('alpine-status').textContent = typeof window.Alpine !== 'undefined' ? 'Yes' : 'No';
+            }
+            if (document.getElementById('vite-status')) {
+                document.getElementById('vite-status').textContent = 'Loaded';
+            }
+
+            // Check if Alpine.js is loaded
+            if (typeof window.Alpine === 'undefined') {
+                console.warn('Alpine.js not loaded, using fallback JavaScript');
+                initializeFallbackTabs();
+            }
+        });
+
+        function initializeFallbackTabs() {
+            const container = document.getElementById('settings-container');
+            if (!container) return;
+
+            // Get all tab buttons
+            const tabButtons = container.querySelectorAll('nav button');
+            const tabContents = container.querySelectorAll('[x-show]');
+
+            // Add click handlers to tab buttons
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const targetTab = this.textContent.trim().toLowerCase().replace(/\s+/g, '_');
+                    
+                    // Update active tab state
+                    tabButtons.forEach(btn => {
+                        btn.classList.remove('border-blue-500', 'text-blue-600');
+                        btn.classList.add('border-transparent', 'text-gray-500');
+                    });
+                    
+                    this.classList.remove('border-transparent', 'text-gray-500');
+                    this.classList.add('border-blue-500', 'text-blue-600');
+
+                    // Show/hide tab content
+                    tabContents.forEach(content => {
+                        if (content.getAttribute('x-show') === `activeTab === '${targetTab}'`) {
+                            content.style.display = 'block';
+                        } else {
+                            content.style.display = 'none';
+                        }
+                    });
+                });
+            });
+
+            // Show first tab by default
+            if (tabButtons.length > 0) {
+                tabButtons[0].click();
+            }
+        }
+
+        // Enhanced error handling for SMTP test
+        window.addEventListener('error', function(e) {
+            console.error('JavaScript error:', e.error);
+            if (e.error && e.error.message && e.error.message.includes('Alpine')) {
+                console.warn('Alpine.js error detected, attempting fallback initialization');
+                setTimeout(initializeFallbackTabs, 100);
+            }
+        });
+    </script>
+    @endsection

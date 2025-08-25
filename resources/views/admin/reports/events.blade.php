@@ -165,7 +165,7 @@
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                 <div>{{ $event->start_date->format('M d, Y') }}</div>
                                                 @if($event->start_time)
-                                                    <div class="text-xs text-gray-500">{{ $event->start_time->format('g:i A') }}</div>
+                                                    <div class="text-xs text-gray-500">{{ $event->start_time }}</div>
                                                 @endif
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

@@ -241,9 +241,9 @@
                             <div class="info-row">
                                 <span class="info-label">Event Time</span>
                                 <span class="info-value">
-                                    {{ \Carbon\Carbon::createFromFormat('H:i:s', $registration->event->start_time)->format('g:i A') }}
+                                    {{ \Carbon\Carbon::createFromFormat('H:i', $registration->event->start_time)->format('g:i A') }}
                                     @if($registration->event->end_time)
-                                        - {{ \Carbon\Carbon::createFromFormat('H:i:s', $registration->event->end_time)->format('g:i A') }}
+                                        - {{ \Carbon\Carbon::createFromFormat('H:i', $registration->event->end_time)->format('g:i A') }}
                                     @endif
                                 </span>
                             </div>

@@ -614,4 +614,30 @@ class Registration extends Model
     {
         return $this->registration_date && $this->registration_date->gte(now()->subDays($days));
     }
+
+    /**
+     * Get status badge color for display.
+     */
+    public function getStatusBadgeColorAttribute(): string
+    {
+        return match($this->status) {
+            'confirmed' => 'bg-green-100 text-green-800',
+            'pending' => 'bg-yellow-100 text-yellow-800',
+            'cancelled' => 'bg-red-100 text-red-800',
+            'waitlisted' => 'bg-purple-100 text-purple-800',
+            default => 'bg-gray-100 text-gray-800',
+        };
+    }
+
+    /**
+     * Get formatted registration date for display.
+     */
+    public function getFormattedRegistrationDateAttribute(): string
+    {
+        if (!$this->registration_date) {
+            return 'N/A';
+        }
+        
+        return $this->registration_date->format('M j, Y \a\t g:i A');
+    }
 }

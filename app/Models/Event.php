@@ -744,6 +744,30 @@ class Event extends Model
     }
 
     /**
+     * Get formatted date range for display.
+     */
+    public function getFormattedDateRangeAttribute(): string
+    {
+        if ($this->start_date->isSameDay($this->end_date)) {
+            return $this->start_date->format('F j, Y');
+        }
+        
+        return $this->start_date->format('F j') . ' - ' . $this->end_date->format('F j, Y');
+    }
+
+    /**
+     * Get formatted time range for display.
+     */
+    public function getFormattedTimeRangeAttribute(): string
+    {
+        if ($this->start_time && $this->end_time) {
+            return $this->getFormattedStartTimeAttribute() . ' - ' . $this->getFormattedEndTimeAttribute();
+        }
+        
+        return 'Time TBD';
+    }
+
+    /**
      * Get registration statistics.
      */
     public function getRegistrationStats(): array
@@ -802,19 +826,147 @@ class Event extends Model
     }
 
     /**
-     * Get formatted start time.
+     * Get formatted start time in 24-hour format.
      */
     public function getFormattedStartTimeAttribute(): string
     {
-        return $this->start_time ?: '';
+        if (!$this->start_time) {
+            return '';
+        }
+        
+        // If it's already in HH:MM format, return as is
+        if (preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $this->start_time)) {
+            return $this->start_time;
+        }
+        
+        // If it's in 12-hour format, convert to 24-hour
+        if (preg_match('/^([0-9]{1,2}):([0-5][0-9])\s*(AM|PM)$/i', $this->start_time, $matches)) {
+            $hour = (int)$matches[1];
+            $minute = $matches[2];
+            $period = strtoupper($matches[3]);
+            
+            if ($period === 'PM' && $hour !== 12) {
+                $hour += 12;
+            } elseif ($period === 'AM' && $hour === 12) {
+                $hour = 0;
+            }
+            
+            return sprintf('%02d:%02d', $hour, $minute);
+        }
+        
+        // Return as is if format is unrecognized
+        return $this->start_time;
     }
 
     /**
-     * Get formatted end time.
+     * Get formatted end time in 24-hour format.
      */
     public function getFormattedEndTimeAttribute(): string
     {
-        return $this->end_time ?: '';
+        if (!$this->end_time) {
+            return '';
+        }
+        
+        // If it's already in HH:MM format, return as is
+        if (preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $this->end_time)) {
+            return $this->end_time;
+        }
+        
+        // If it's in 12-hour format, convert to 24-hour
+        if (preg_match('/^([0-9]{1,2}):([0-5][0-9])\s*(AM|PM)$/i', $this->end_time, $matches)) {
+            $hour = (int)$matches[1];
+            $minute = $matches[2];
+            $period = strtoupper($matches[3]);
+            
+            if ($period === 'PM' && $hour !== 12) {
+                $hour += 12;
+            } elseif ($period === 'AM' && $hour === 12) {
+                $hour = 0;
+            }
+            
+            return sprintf('%02d:%02d', $hour, $minute);
+        }
+        
+        // Return as is if format is unrecognized
+        return $this->end_time;
+    }
+
+    /**
+     * Get start time in 12-hour format for display.
+     */
+    public function getDisplayStartTimeAttribute(): string
+    {
+        if (!$this->start_time) {
+            return '';
+        }
+        
+        // Convert 24-hour format to 12-hour display format
+        if (preg_match('/^([01]?[0-9]|2[0-3]):([0-5][0-9])$/', $this->start_time, $matches)) {
+            $hour = (int)$matches[1];
+            $minute = $matches[2];
+            
+            if ($hour === 0) {
+                return sprintf('12:%02d AM', $minute);
+            } elseif ($hour === 12) {
+                return sprintf('12:%02d PM', $minute);
+            } elseif ($hour > 12) {
+                return sprintf('%d:%02d PM', $hour - 12, $minute);
+            } else {
+                return sprintf('%d:%02d AM', $hour, $minute);
+            }
+        }
+        
+        // If it's already in 12-hour format, return as is
+        if (preg_match('/^([0-9]{1,2}):([0-5][0-9])\s*(AM|PM)$/i', $this->start_time)) {
+            return $this->start_time;
+        }
+        
+        return $this->start_time;
+    }
+
+    /**
+     * Get end time in 12-hour format for display.
+     */
+    public function getDisplayEndTimeAttribute(): string
+    {
+        if (!$this->end_time) {
+            return '';
+        }
+        
+        // Convert 24-hour format to 12-hour display format
+        if (preg_match('/^([01]?[0-9]|2[0-3]):([0-5][0-9])$/', $this->end_time, $matches)) {
+            $hour = (int)$matches[1];
+            $minute = $matches[2];
+            
+            if ($hour === 0) {
+                return sprintf('12:%02d AM', $minute);
+            } elseif ($hour === 12) {
+                return sprintf('12:%02d PM', $minute);
+            } elseif ($hour > 12) {
+                return sprintf('%d:%02d PM', $hour - 12, $minute);
+            } else {
+                return sprintf('%d:%02d AM', $hour, $minute);
+            }
+        }
+        
+        // If it's already in 12-hour format, return as is
+        if (preg_match('/^([0-9]{1,2}):([0-5][0-9])\s*(AM|PM)$/i', $this->end_time)) {
+            return $this->end_time;
+        }
+        
+        return $this->end_time;
+    }
+
+    /**
+     * Get formatted time range in 12-hour format for display.
+     */
+    public function getDisplayTimeRangeAttribute(): string
+    {
+        if ($this->start_time && $this->end_time) {
+            return $this->getDisplayStartTimeAttribute() . ' - ' . $this->getDisplayEndTimeAttribute();
+        }
+        
+        return 'Time TBD';
     }
 
     /**

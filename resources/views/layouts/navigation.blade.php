@@ -1,6 +1,7 @@
 <nav class="bg-slate-800 border-b border-slate-700">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
+        <!-- First Row: Company Name and User Info -->
+        <div class="flex justify-between items-center py-3">
             <!-- Logo and Brand -->
             <div class="flex items-center">
                 <div class="flex-shrink-0 flex items-center">
@@ -20,63 +21,6 @@
                         </div>
                     </a>
                 </div>
-            </div>
-
-            <!-- Navigation Links -->
-            <div class="hidden md:flex items-center space-x-1">
-                @auth
-                    @if(auth()->user()->isAdmin())
-                        <!-- Admin Check-in Link -->
-                        <a href="{{ route('admin.check-in.index') }}" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ request()->routeIs('admin.check-in.*') ? 'text-white' : 'text-slate-300 hover:text-white hover:bg-slate-700' }}" style="{{ request()->routeIs('admin.check-in.*') ? 'background-color: ' . primary_color() : '' }}">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            </svg>
-                            Check-in Station
-                        </a>
-
-                        <!-- Dashboard Link (for admins) -->
-                        <a href="{{ route('admin.dashboard') }}" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ request()->routeIs('admin.dashboard') ? 'text-white' : 'text-slate-300 hover:text-white hover:bg-slate-700' }}" style="{{ request()->routeIs('admin.dashboard') ? 'background-color: ' . primary_color() : '' }}">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
-                            </svg>
-                            Dashboard
-                        </a>
-
-                        <!-- Registrations Management Link -->
-                        <a href="{{ route('admin.registrations.index') }}" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ request()->routeIs('admin.registrations.*') ? 'text-white' : 'text-slate-300 hover:text-white hover:bg-slate-700' }}" style="{{ request()->routeIs('admin.registrations.*') ? 'background-color: ' . primary_color() : '' }}">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                            Registrations
-                        </a>
-
-                        <!-- Attendees Management Link -->
-                        <a href="{{ route('admin.attendees.index') }}" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ request()->routeIs('admin.attendees.*') ? 'text-white' : 'text-slate-300 hover:text-white hover:bg-slate-700' }}" style="{{ request()->routeIs('admin.attendees.*') ? 'background-color: ' . primary_color() : '' }}">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
-                            </svg>
-                            Attendees
-                        </a>
-
-                        <!-- Reports & Analytics Link -->
-                        <a href="{{ route('admin.reports.index') }}" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ request()->routeIs('admin.reports.*') ? 'text-white' : 'text-slate-300 hover:text-white hover:bg-slate-700' }}" style="{{ request()->routeIs('admin.reports.*') ? 'background-color: ' . primary_color() : '' }}">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                            </svg>
-                            Reports
-                        </a>
-
-                        <!-- Settings Link -->
-                        <a href="{{ route('admin.settings.index') }}" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ request()->routeIs('admin.settings.*') ? 'text-white' : 'text-slate-300 hover:text-white hover:bg-slate-700' }}" style="{{ request()->routeIs('admin.settings.*') ? 'background-color: ' . primary_color() : '' }}">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            </svg>
-                            Settings
-                        </a>
-                    @endif
-                @endauth
             </div>
 
             <!-- User Menu -->
@@ -142,6 +86,71 @@
                 </div>
             </div>
         </div>
+
+        <!-- Second Row: Main Navigation -->
+        @auth
+            @if(auth()->user()->isAdmin())
+                <div class="flex items-center justify-center space-x-1 py-3 border-t border-slate-700">
+                    <!-- Admin Check-in Link -->
+                    <a href="{{ route('admin.check-in.index') }}" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ request()->routeIs('admin.check-in.*') ? 'text-white' : 'text-slate-300 hover:text-white hover:bg-slate-700' }}" style="{{ request()->routeIs('admin.check-in.*') ? 'background-color: ' . primary_color() : '' }}">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        Check-in Station
+                    </a>
+
+                    <!-- Dashboard Link (for admins) -->
+                    <a href="{{ route('admin.dashboard') }}" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ request()->routeIs('admin.dashboard') ? 'text-white' : 'text-slate-300 hover:text-white hover:bg-slate-700' }}" style="{{ request()->routeIs('admin.dashboard') ? 'background-color: ' . primary_color() : '' }}">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                        </svg>
+                        Dashboard
+                    </a>
+
+                    <!-- Events Management Link -->
+                    <a href="{{ route('admin.events.index') }}" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ request()->routeIs('admin.events.*') ? 'text-white' : 'text-slate-300 hover:text-white hover:bg-slate-700' }}" style="{{ request()->routeIs('admin.events.*') ? 'background-color: ' . primary_color() : '' }}">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        Events
+                    </a>
+
+                    <!-- Registrations Management Link -->
+                    <a href="{{ route('admin.registrations.index') }}" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ request()->routeIs('admin.registrations.*') ? 'text-white' : 'text-slate-300 hover:text-white hover:bg-slate-700' }}" style="{{ request()->routeIs('admin.registrations.*') ? 'background-color: ' . primary_color() : '' }}">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Registrations
+                    </a>
+
+                    <!-- Attendees Management Link -->
+                    <a href="{{ route('admin.attendees.index') }}" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ request()->routeIs('admin.attendees.*') ? 'text-white' : 'text-slate-300 hover:text-white hover:bg-slate-700' }}" style="{{ request()->routeIs('admin.attendees.*') ? 'background-color: ' . primary_color() : '' }}">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                        </svg>
+                        Attendees
+                    </a>
+
+                    <!-- Reports & Analytics Link -->
+                    <a href="{{ route('admin.reports.index') }}" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ request()->routeIs('admin.reports.*') ? 'text-white' : 'text-slate-300 hover:text-white hover:bg-slate-700' }}" style="{{ request()->routeIs('admin.reports.*') ? 'background-color: ' . primary_color() : '' }}">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        Reports
+                    </a>
+
+                    <!-- Settings Link -->
+                    <a href="{{ route('admin.settings.index') }}" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ request()->routeIs('admin.settings.*') ? 'text-white' : 'text-slate-300 hover:text-white hover:bg-slate-700' }}" style="{{ request()->routeIs('admin.settings.*') ? 'background-color: ' . primary_color() : '' }}">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        Settings
+                    </a>
+                </div>
+            @endif
+        @endauth
     </div>
 
     <!-- Mobile menu -->
@@ -149,7 +158,12 @@
         <div class="px-2 pt-2 pb-3 space-y-1">
             @auth
                 @if(auth()->user()->isAdmin())
+                    <a href="{{ route('admin.check-in.index') }}" class="block px-3 py-2 text-base font-medium text-slate-300 hover:text-white hover:bg-slate-700 rounded-md">Check-in Station</a>
                     <a href="{{ route('admin.dashboard') }}" class="block px-3 py-2 text-base font-medium text-slate-300 hover:text-white hover:bg-slate-700 rounded-md">Dashboard</a>
+                    <a href="{{ route('admin.events.index') }}" class="block px-3 py-2 text-base font-medium text-slate-300 hover:text-white hover:bg-slate-700 rounded-md">Events</a>
+                    <a href="{{ route('admin.registrations.index') }}" class="block px-3 py-2 text-base font-medium text-slate-300 hover:text-white hover:bg-slate-700 rounded-md">Registrations</a>
+                    <a href="{{ route('admin.attendees.index') }}" class="block px-3 py-2 text-base font-medium text-slate-300 hover:text-white hover:bg-slate-700 rounded-md">Attendees</a>
+                    <a href="{{ route('admin.reports.index') }}" class="block px-3 py-2 text-base font-medium text-slate-300 hover:text-white hover:bg-slate-700 rounded-md">Reports</a>
                     <a href="{{ route('admin.settings.index') }}" class="block px-3 py-2 text-base font-medium text-slate-300 hover:text-white hover:bg-slate-700 rounded-md">Settings</a>
                 @endif
                 <a href="{{ route('profile.show') }}" class="block px-3 py-2 text-base font-medium text-slate-300 hover:text-white hover:bg-slate-700 rounded-md">Profile</a>

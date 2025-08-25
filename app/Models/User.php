@@ -450,4 +450,27 @@ class User extends Authenticatable
             default => 'User'
         };
     }
+
+    /**
+     * Get formatted phone number for display.
+     */
+    public function getFormattedPhoneAttribute(): string
+    {
+        if (!$this->phone) {
+            return '';
+        }
+        
+        // Remove all non-numeric characters
+        $phone = preg_replace('/[^0-9]/', '', $this->phone);
+        
+        // Format based on length
+        if (strlen($phone) === 10) {
+            return '(' . substr($phone, 0, 3) . ') ' . substr($phone, 3, 3) . '-' . substr($phone, 6, 4);
+        } elseif (strlen($phone) === 11 && substr($phone, 0, 1) === '1') {
+            return '+1 (' . substr($phone, 1, 3) . ') ' . substr($phone, 4, 3) . '-' . substr($phone, 7, 4);
+        }
+        
+        // Return as is if format is unrecognized
+        return $this->phone;
+    }
 }

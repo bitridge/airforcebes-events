@@ -27,8 +27,8 @@
             <div class="flex items-center space-x-4">
                 @auth
                     <!-- User Dropdown -->
-                    <div class="relative" x-data="{ open: false }">
-                        <button @click="open = !open" class="flex items-center space-x-2 text-slate-300 hover:text-white focus:outline-none focus:text-white transition-colors duration-200">
+                    <div class="relative" id="user-dropdown" x-data="{ open: false }">
+                        <button @click="open = !open" id="user-dropdown-button" class="flex items-center space-x-2 text-slate-300 hover:text-white focus:outline-none focus:text-white transition-colors duration-200">
                             <div class="w-8 h-8 bg-slate-600 rounded-full flex items-center justify-center">
                                 <span class="text-sm font-medium text-white">{{ auth()->user()->initials }}</span>
                             </div>
@@ -38,7 +38,7 @@
                             </svg>
                         </button>
 
-                        <div x-show="open" @click.away="open = false" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="transform opacity-0 scale-95" x-transition:enter-end="transform opacity-100 scale-100" x-transition:leave="transition ease-in duration-75" x-transition:leave-start="transform opacity-100 scale-100" x-transition:leave-end="transform opacity-0 scale-95" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50">
+                        <div x-show="open" @click.away="open = false" id="user-dropdown-menu" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="transform opacity-0 scale-95" x-transition:enter-end="transform opacity-100 scale-100" x-transition:leave="transition ease-in duration-75" x-transition:leave-start="transform opacity-100 scale-100" x-transition:leave-end="transform opacity-0 scale-95" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50">
                             <a href="{{ route('profile.show') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
                                 <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
@@ -78,7 +78,7 @@
 
                 <!-- Mobile menu button -->
                 <div class="md:hidden">
-                    <button @click="mobileOpen = !mobileOpen" class="text-slate-400 hover:text-white focus:outline-none focus:text-white">
+                    <button @click="mobileOpen = !mobileOpen" id="mobile-menu-button" class="text-slate-400 hover:text-white focus:outline-none focus:text-white">
                         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
@@ -154,7 +154,7 @@
     </div>
 
     <!-- Mobile menu -->
-    <div x-data="{ mobileOpen: false }" x-show="mobileOpen" class="md:hidden bg-slate-900">
+    <div x-data="{ mobileOpen: false }" id="mobile-menu" x-show="mobileOpen" class="md:hidden bg-slate-900">
         <div class="px-2 pt-2 pb-3 space-y-1">
             @auth
                 @if(auth()->user()->isAdmin())
@@ -179,3 +179,89 @@
         </div>
     </div>
 </nav>
+
+<!-- Fallback JavaScript for navigation dropdowns when Alpine.js is not loaded -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if Alpine.js is loaded
+        if (typeof window.Alpine === 'undefined') {
+            console.warn('Alpine.js not loaded, using fallback JavaScript for navigation');
+            initializeNavigationFallbacks();
+        }
+    });
+
+    function initializeNavigationFallbacks() {
+        // User dropdown fallback
+        const userDropdownButton = document.getElementById('user-dropdown-button');
+        const userDropdownMenu = document.getElementById('user-dropdown-menu');
+        
+        if (userDropdownButton && userDropdownMenu) {
+            // Initially hide the dropdown
+            userDropdownMenu.style.display = 'none';
+            
+            // Toggle dropdown on button click
+            userDropdownButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const isVisible = userDropdownMenu.style.display === 'block';
+                userDropdownMenu.style.display = isVisible ? 'none' : 'block';
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!userDropdownButton.contains(e.target) && !userDropdownMenu.contains(e.target)) {
+                    userDropdownMenu.style.display = 'none';
+                }
+            });
+            
+            // Close dropdown on ESC key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    userDropdownMenu.style.display = 'none';
+                }
+            });
+        }
+        
+        // Mobile menu fallback
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        if (mobileMenuButton && mobileMenu) {
+            // Initially hide the mobile menu
+            mobileMenu.style.display = 'none';
+            
+            // Toggle mobile menu on button click
+            mobileMenuButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const isVisible = mobileMenu.style.display === 'block';
+                mobileMenu.style.display = isVisible ? 'none' : 'block';
+            });
+            
+            // Close mobile menu when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!mobileMenuButton.contains(e.target) && !mobileMenu.contains(e.target)) {
+                    mobileMenu.style.display = 'none';
+                }
+            });
+            
+            // Close mobile menu on ESC key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    mobileMenu.style.display = 'none';
+                }
+            });
+        }
+    }
+
+    // Enhanced error handling for navigation
+    window.addEventListener('error', function(e) {
+        console.error('JavaScript error in navigation:', e.error);
+        if (e.error && e.error.message && e.error.message.includes('Alpine')) {
+            console.warn('Alpine.js error detected in navigation, attempting fallback initialization');
+            setTimeout(initializeNavigationFallbacks, 100);
+        }
+    });
+</script>

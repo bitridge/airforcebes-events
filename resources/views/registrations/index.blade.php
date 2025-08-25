@@ -13,9 +13,22 @@
         </div>
     </x-slot>
 
+    <!-- Debug Information (only show in non-production) -->
+    @if(config('app.debug'))
+        <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded mx-auto max-w-7xl mt-4">
+            <h4 class="font-medium">Debug Information</h4>
+            <div class="text-sm mt-2 space-y-1">
+                <p><strong>Registrations Count:</strong> {{ $registrations->count() ?? 'N/A' }}</p>
+                <p><strong>Total Registrations:</strong> {{ $registrations->total() ?? 'N/A' }}</p>
+                <p><strong>Environment:</strong> {{ config('app.env') }}</p>
+                <p><strong>User ID:</strong> {{ auth()->id() ?? 'N/A' }}</p>
+            </div>
+        </div>
+    @endif
+
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            @if($registrations->count() > 0)
+            @if(($registrations->count() ?? 0) > 0)
                 <!-- Summary Stats -->
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
@@ -31,7 +44,7 @@
                                 <div class="ml-5 w-0 flex-1">
                                     <dl>
                                         <dt class="text-sm font-medium text-gray-500 truncate">Total Registrations</dt>
-                                        <dd class="text-lg font-medium text-gray-900">{{ $registrations->total() }}</dd>
+                                        <dd class="text-lg font-medium text-gray-900">{{ $registrations->total() ?? 0 }}</dd>
                                     </dl>
                                 </div>
                             </div>
@@ -245,6 +258,28 @@
                             </svg>
                             Browse Events
                         </a>
+                    </div>
+                </div>
+            @endif
+
+            <!-- Fallback content if registrations data is not available -->
+            @if(!isset($registrations) || $registrations === null)
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-12 text-center">
+                        <svg class="mx-auto h-16 w-16 text-gray-400 mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                        <h3 class="text-xl font-medium text-gray-900 mb-4">Data Loading Issue</h3>
+                        <p class="text-gray-600 mb-8 max-w-md mx-auto">
+                            There was a problem loading your registrations. Please try refreshing the page.
+                        </p>
+                        <button onclick="window.location.reload()" 
+                               class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Refresh Page
+                        </button>
                     </div>
                 </div>
             @endif

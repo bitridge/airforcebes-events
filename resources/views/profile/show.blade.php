@@ -10,6 +10,20 @@
         </div>
     </x-slot>
 
+    <!-- Debug Information (only show in non-production) -->
+    @if(config('app.debug'))
+        <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded mx-auto max-w-7xl mt-4">
+            <h4 class="font-medium">Debug Information</h4>
+            <div class="text-sm mt-2 space-y-1">
+                <p><strong>User ID:</strong> {{ $user->id ?? 'N/A' }}</p>
+                <p><strong>User Name:</strong> {{ $user->name ?? 'N/A' }}</p>
+                <p><strong>Registration Count:</strong> {{ $registrationCount ?? 'N/A' }}</p>
+                <p><strong>Check-in Count:</strong> {{ $checkInCount ?? 'N/A' }}</p>
+                <p><strong>Environment:</strong> {{ config('app.env') }}</p>
+            </div>
+        </div>
+    @endif
+
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-6">
             <!-- Profile Overview -->
@@ -19,19 +33,19 @@
                         <!-- Avatar -->
                         <div class="flex-shrink-0">
                             <div class="h-20 w-20 bg-indigo-600 rounded-full flex items-center justify-center">
-                                <span class="text-2xl font-medium text-white">{{ $user->initials }}</span>
+                                <span class="text-2xl font-medium text-white">{{ $user->initials ?? 'U' }}</span>
                             </div>
                         </div>
 
                         <!-- User Info -->
                         <div class="flex-1">
-                            <h3 class="text-2xl font-bold text-gray-900">{{ $user->name }}</h3>
-                            <p class="text-gray-600">{{ $user->email }}</p>
+                            <h3 class="text-2xl font-bold text-gray-900">{{ $user->name ?? 'User' }}</h3>
+                            <p class="text-gray-600">{{ $user->email ?? 'email@example.com' }}</p>
                             
                             <div class="mt-2 flex items-center space-x-4">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
                                     @if($user->isAdmin()) bg-blue-100 text-blue-800 @else bg-green-100 text-green-800 @endif">
-                                    {{ $user->getRoleDisplayName() }}
+                                    {{ $user->getRoleDisplayName() ?? 'User' }}
                                 </span>
                                 
                                 @if($user->phone)
@@ -39,7 +53,7 @@
                                         <svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
                                         </svg>
-                                        {{ $user->formatted_phone }}
+                                        {{ $user->formatted_phone ?? $user->phone }}
                                     </span>
                                 @endif
                                 
@@ -69,12 +83,12 @@
                                     </svg>
                                 </div>
                             </div>
-                            <div class="ml-5 w-0 flex-1">
-                                <dl>
-                                    <dt class="text-sm font-medium text-gray-500 truncate">Total Registrations</dt>
-                                    <dd class="text-lg font-medium text-gray-900">{{ $registrationCount }}</dd>
-                                </dl>
-                            </div>
+                                                            <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Total Registrations</dt>
+                                        <dd class="text-lg font-medium text-gray-900">{{ $registrationCount ?? 0 }}</dd>
+                                    </dl>
+                                </div>
                         </div>
                     </div>
                 </div>
@@ -92,7 +106,7 @@
                             <div class="ml-5 w-0 flex-1">
                                 <dl>
                                     <dt class="text-sm font-medium text-gray-500 truncate">Events Attended</dt>
-                                    <dd class="text-lg font-medium text-gray-900">{{ $checkInCount }}</dd>
+                                    <dd class="text-lg font-medium text-gray-900">{{ $checkInCount ?? 0 }}</dd>
                                 </dl>
                             </div>
                         </div>

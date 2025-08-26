@@ -34,9 +34,9 @@ class ProfileUpdateRequest extends FormRequest
             'industry_connections' => ['nullable', 'string', 'max:500'],
             'core_specialty_area' => ['nullable', 'string', 'max:500'],
             'contract_vehicles' => ['nullable', 'string', 'max:500'],
-            'meeting_preference' => ['nullable', 'string', 'in:in_person,virtual,hybrid,no_preference,prefer_morning,prefer_afternoon,prefer_evening'],
-            'small_business_forum' => ['nullable', 'boolean'],
-            'small_business_matchmaker' => ['nullable', 'boolean'],
+                    'meeting_preference' => ['nullable', 'string', 'max:255'],
+        'small_business_forum' => ['nullable', 'string', 'in:Yes (In-person),No'],
+        'small_business_matchmaker' => ['nullable', 'string', 'in:Yes (In-person),No'],
             'bio' => ['nullable', 'string', 'max:1000'],
             'profile_picture' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
         ];

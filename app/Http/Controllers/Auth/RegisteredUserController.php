@@ -41,9 +41,9 @@ class RegisteredUserController extends Controller
             'industry_connections' => ['nullable', 'string', 'max:1000'],
             'core_specialty_area' => ['nullable', 'string', 'max:1000'],
             'contract_vehicles' => ['nullable', 'string', 'max:1000'],
-            'meeting_preference' => ['required', 'in:in_person,virtual,hybrid,no_preference'],
-            'small_business_forum' => ['boolean'],
-            'small_business_matchmaker' => ['boolean'],
+            'meeting_preference' => ['required', 'string', 'max:255'],
+            'small_business_forum' => ['nullable', 'string', 'in:Yes (In-person),No'],
+            'small_business_matchmaker' => ['nullable', 'string', 'in:Yes (In-person),No'],
             'role' => ['required', 'in:admin,attendee'],
         ]);
 
@@ -65,8 +65,8 @@ class RegisteredUserController extends Controller
             'core_specialty_area' => $request->core_specialty_area,
             'contract_vehicles' => $request->contract_vehicles,
             'meeting_preference' => $request->meeting_preference,
-            'small_business_forum' => $request->boolean('small_business_forum'),
-            'small_business_matchmaker' => $request->boolean('small_business_matchmaker'),
+            'small_business_forum' => $request->small_business_forum,
+            'small_business_matchmaker' => $request->small_business_matchmaker,
             'role' => $request->role ?? 'attendee',
             'is_active' => true,
             'created_by' => null, // Self-registration

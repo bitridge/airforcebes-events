@@ -99,13 +99,7 @@
             <h4 class="text-lg font-medium text-gray-900 mb-4">Preferences</h4>
             <div>
                 <x-input-label for="meeting_preference" :value="__('Meeting Preference')" />
-                <select id="meeting_preference" name="meeting_preference" required class="block mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                    <option value="">Select your preference</option>
-                    <option value="in_person" {{ old('meeting_preference') == 'in_person' ? 'selected' : '' }}>In Person</option>
-                    <option value="virtual" {{ old('meeting_preference') == 'virtual' ? 'selected' : '' }}>Virtual</option>
-                    <option value="hybrid" {{ old('meeting_preference') == 'hybrid' ? 'selected' : '' }}>Hybrid</option>
-                    <option value="no_preference" {{ old('meeting_preference') == 'no_preference' ? 'selected' : '' }}>No Preference</option>
-                </select>
+                <x-text-input id="meeting_preference" name="meeting_preference" type="text" class="block mt-1 w-full" placeholder="e.g., In-person, Virtual, Hybrid, Morning preference, etc." value="{{ old('meeting_preference') }}" />
                 <x-input-error :messages="$errors->get('meeting_preference')" class="mt-2" />
                 <p class="mt-1 text-xs text-gray-500">How you prefer to attend events</p>
             </div>
@@ -115,13 +109,32 @@
         <div class="bg-gray-50 p-4 rounded-lg">
             <h4 class="text-lg font-medium text-gray-900 mb-4">Event Participation</h4>
             <div class="space-y-4">
-                <div class="flex items-center">
-                    <input id="small_business_forum" name="small_business_forum" type="checkbox" value="1" {{ old('small_business_forum') ? 'checked' : '' }} class="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2">
-                    <label for="small_business_forum" class="ml-3 text-sm font-medium text-gray-700">Small Business Forum: Increasing the Defense Industrial Base</label>
+                <div>
+                    <label class="text-sm font-medium text-gray-700 mb-2 block">Small Business Forum: Increasing the Defense Industrial Base</label>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <input id="small_business_forum_yes" name="small_business_forum" type="radio" value="Yes (In-person)" {{ old('small_business_forum') == 'Yes (In-person)' ? 'checked' : '' }} class="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 focus:ring-indigo-500 focus:ring-2">
+                            <label for="small_business_forum_yes" class="ml-3 text-sm text-gray-700">Yes (In-person)</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input id="small_business_forum_no" name="small_business_forum" type="radio" value="No" {{ old('small_business_forum') == 'No' ? 'checked' : '' }} class="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 focus:ring-indigo-500 focus:ring-2">
+                            <label for="small_business_forum_no" class="ml-3 text-sm text-gray-700">No</label>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex items-center">
-                    <input id="small_business_matchmaker" name="small_business_matchmaker" type="checkbox" value="1" {{ old('small_business_matchmaker') ? 'checked' : '' }} class="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2">
-                    <label for="small_business_matchmaker" class="ml-3 text-sm font-medium text-gray-700">Small Business Matchmaker</label>
+                
+                <div>
+                    <label class="text-sm font-medium text-gray-700 mb-2 block">Small Business Matchmaker</label>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <input id="small_business_matchmaker_yes" name="small_business_matchmaker" type="radio" value="Yes (In-person)" {{ old('small_business_matchmaker') == 'Yes (In-person)' ? 'checked' : '' }} class="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 focus:ring-indigo-500 focus:ring-2">
+                            <label for="small_business_matchmaker_yes" class="ml-3 text-sm text-gray-700">Yes (In-person)</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input id="small_business_matchmaker_no" name="small_business_matchmaker" type="radio" value="No" {{ old('small_business_matchmaker') == 'No' ? 'checked' : '' }} class="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 focus:ring-indigo-500 focus:ring-2">
+                            <label for="small_business_matchmaker_no" class="ml-3 text-sm text-gray-700">No</label>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

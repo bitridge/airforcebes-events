@@ -758,8 +758,8 @@ class RegistrationController extends Controller
                             'core_specialty_area' => trim($row[$mapping['core_specialty_area'] ?? ''] ?? ''),
                             'contract_vehicles' => trim($row[$mapping['contract_vehicles'] ?? ''] ?? ''),
                             'meeting_preference' => $this->normalizeMeetingPreference(trim($row[$mapping['meeting_preference'] ?? ''] ?? '')),
-                            'small_business_forum' => $this->normalizeBoolean(trim($row[$mapping['small_business_forum'] ?? ''] ?? '')),
-                            'small_business_matchmaker' => $this->normalizeBoolean(trim($row[$mapping['small_business_matchmaker'] ?? ''] ?? '')),
+                                                    'small_business_forum' => $this->normalizeSmallBusiness(trim($row[$mapping['small_business_forum'] ?? ''] ?? '')),
+                        'small_business_matchmaker' => $this->normalizeSmallBusiness(trim($row[$mapping['small_business_matchmaker'] ?? ''] ?? '')),
                         ]
                     );
 
@@ -795,8 +795,8 @@ class RegistrationController extends Controller
                         'status' => 'confirmed', // Automatically confirmed
                         'registration_code' => $this->generateRegistrationCode(),
                         'qr_code_data' => $this->generateQrCodeData($event, $user),
-                        'type' => trim($row[$mapping['type'] ?? ''] ?? 'registration'),
-                        'checkin_type' => trim($row[$mapping['checkin_type'] ?? ''] ?? 'standard'),
+                        'type' => 'registration', // Default to registration for all imported users
+                        'checkin_type' => null, // Default to null for checkin_type
                         'notes' => trim($row[$mapping['notes'] ?? ''] ?? ''),
                         'registration_date' => now(),
                     ]);
@@ -898,10 +898,86 @@ class RegistrationController extends Controller
     }
 
     /**
-     * Normalize meeting preference values from CSV to valid enum values.
+     * Normalize meeting preference values from CSV to text.
      */
     private function normalizeMeetingPreference(string $value): string
     {
+        $value = trim($value);
+        
+        // If empty, return a default value
+        if (empty($value)) {
+            return 'No preference';
+        }
+        
+        // Return the value as-is for text field
+        return $value;
+    }
+
+    /**
+     * Normalize small business values from CSV to string values.
+     */
+    private function normalizeSmallBusiness(string $value): string
+    {
+        $value = trim($value);
+        
+        // Map common CSV values to our new string format
+        $mapping = [
+            'true' => 'Yes (In-person)',
+            '1' => 'Yes (In-person)',
+            'yes' => 'Yes (In-person)',
+            'y' => 'Yes (In-person)',
+            'on' => 'Yes (In-person)',
+            'enabled' => 'Yes (In-person)',
+            'false' => 'No',
+            '0' => 'No',
+            'no' => 'No',
+            'n' => 'No',
+            'off' => 'No',
+            'disabled' => 'No',
+            'yes (in-person)' => 'Yes (In-person)',
+            'yes (in person)' => 'Yes (In-person)',
+            '' => 'No',
+        ];
+        
+        $lowerValue = strtolower($value);
+        return $mapping[$lowerValue] ?? $value; // Return as-is if not in mapping
+    }
+
+    /**
+     * Normalize registration type values from CSV to valid enum values.
+     */
+    private function normalizeRegistrationType(string $value): string
+    {
+        $value = strtolower(trim($value));
+        
+        // Map common CSV values to valid enum values
+        $mapping = [
+            'registration' => 'registration',
+            'reg' => 'registration',
+            'attendee' => 'registration',
+            'checkin' => 'checkin',
+            'check-in' => 'checkin',
+            'check in' => 'checkin',
+            'small' => 'registration',
+            'other' => 'registration',
+            'none' => 'registration',
+            '' => 'registration',
+        ];
+        
+        return $mapping[$value] ?? 'registration';
+    }
+
+    /**
+     * Normalize check-in type values from CSV to valid enum values.
+     */
+    private function normalizeCheckinType(string $value): ?string
+    {
+        $value = strtolower(trim($value));
+        
+        if (empty($value) || $value === 'none' || $value === 'standard') {
+            return null; // Allow null for checkin_type
+        }
+        
         $value = strtolower(trim($value));
         
         // Map common CSV values to valid enum values
@@ -910,37 +986,11 @@ class RegistrationController extends Controller
             'in-person' => 'in_person',
             'virtual' => 'virtual',
             'hybrid' => 'hybrid',
-            'no preference' => 'no_preference',
-            'no_preference' => 'no_preference',
-            'prefer morning' => 'prefer_morning',
-            'prefer afternoon' => 'prefer_afternoon',
-            'prefer evening' => 'prefer_evening',
-            '' => 'no_preference',
+            'standard' => null,
+            'none' => null,
+            '' => null,
         ];
         
-        return $mapping[$value] ?? 'no_preference';
-    }
-
-    /**
-     * Normalize boolean values from CSV to valid boolean values.
-     */
-    private function normalizeBoolean(string $value): bool
-    {
-        $value = strtolower(trim($value));
-        
-        // Map common CSV values to boolean
-        $trueValues = ['true', '1', 'yes', 'y', 'on', 'enabled'];
-        $falseValues = ['false', '0', 'no', 'n', 'off', 'disabled', ''];
-        
-        if (in_array($value, $trueValues)) {
-            return true;
-        }
-        
-        if (in_array($value, $falseValues)) {
-            return false;
-        }
-        
-        // Default to false for unknown values
-        return false;
+        return $mapping[$value] ?? null;
     }
 }

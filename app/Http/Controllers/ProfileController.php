@@ -47,9 +47,9 @@ class ProfileController extends Controller
 
         // Note: name field is no longer used, we use first_name + last_name with accessor
 
-        // Handle boolean fields
-        $user->small_business_forum = $request->boolean('small_business_forum');
-        $user->small_business_matchmaker = $request->boolean('small_business_matchmaker');
+        // Handle small business fields (now strings)
+        $user->small_business_forum = $request->small_business_forum;
+        $user->small_business_matchmaker = $request->small_business_matchmaker;
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;

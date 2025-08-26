@@ -73,8 +73,8 @@ class RegistrationController extends Controller
                     'core_specialty_area' => $request->core_specialty_area,
                     'contract_vehicles' => $request->contract_vehicles,
                     'meeting_preference' => $request->meeting_preference,
-                    'small_business_forum' => $request->boolean('small_business_forum'),
-                    'small_business_matchmaker' => $request->boolean('small_business_matchmaker'),
+                    'small_business_forum' => $request->small_business_forum,
+                    'small_business_matchmaker' => $request->small_business_matchmaker,
                 ]
             ]);
 
@@ -97,8 +97,8 @@ class RegistrationController extends Controller
                 'core_specialty_area' => $request->core_specialty_area,
                 'contract_vehicles' => $request->contract_vehicles,
                 'meeting_preference' => $request->meeting_preference,
-                'small_business_forum' => $request->boolean('small_business_forum'),
-                'small_business_matchmaker' => $request->boolean('small_business_matchmaker'),
+                'small_business_forum' => $request->small_business_forum,
+                'small_business_matchmaker' => $request->small_business_matchmaker,
             ]);
 
             \Log::info('Registration created successfully', [

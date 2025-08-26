@@ -167,16 +167,10 @@
                             
                             <div>
                                 <label for="meeting_preference" class="block text-sm font-medium text-gray-700">Meeting Preference</label>
-                                <select id="meeting_preference" name="meeting_preference"
-                                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                                    <option value="no_preference" {{ $attendee->meeting_preference === 'no_preference' ? 'selected' : '' }}>No Preference</option>
-                                    <option value="in_person" {{ $attendee->meeting_preference === 'in_person' ? 'selected' : '' }}>In Person</option>
-                                    <option value="virtual" {{ $attendee->meeting_preference === 'virtual' ? 'selected' : '' }}>Virtual</option>
-                                    <option value="hybrid" {{ $attendee->meeting_preference === 'hybrid' ? 'selected' : '' }}>Hybrid</option>
-                                    <option value="prefer_morning" {{ $attendee->meeting_preference === 'prefer_morning' ? 'selected' : '' }}>Prefer Morning</option>
-                                    <option value="prefer_afternoon" {{ $attendee->meeting_preference === 'prefer_afternoon' ? 'selected' : '' }}>Prefer Afternoon</option>
-                                    <option value="prefer_evening" {{ $attendee->meeting_preference === 'prefer_evening' ? 'selected' : '' }}>Prefer Evening</option>
-                                </select>
+                                <input type="text" id="meeting_preference" name="meeting_preference"
+                                       value="{{ $attendee->meeting_preference }}"
+                                       placeholder="e.g., In-person, Virtual, Hybrid, Morning preference, etc."
+                                       class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
                                 @error('meeting_preference')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
@@ -187,20 +181,42 @@
                         <div class="border-t pt-6">
                             <h4 class="text-md font-medium text-gray-900 mb-4">Event Participation</h4>
                             
-                            <div class="space-y-3">
-                                <label class="flex items-center">
-                                    <input type="checkbox" name="small_business_forum" value="1" 
-                                           {{ $attendee->small_business_forum ? 'checked' : '' }}
-                                           class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
-                                    <span class="ml-2 text-sm text-gray-700">Small Business Forum: Increasing the Defense Industrial Base</span>
-                                </label>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="text-sm font-medium text-gray-700 mb-2 block">Small Business Forum: Increasing the Defense Industrial Base</label>
+                                    <div class="space-y-2">
+                                        <div class="flex items-center">
+                                            <input type="radio" name="small_business_forum" value="Yes (In-person)" 
+                                                   {{ $attendee->small_business_forum === 'Yes (In-person)' ? 'checked' : '' }}
+                                                   class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                                            <span class="ml-2 text-sm text-gray-700">Yes (In-person)</span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <input type="radio" name="small_business_forum" value="No" 
+                                                   {{ $attendee->small_business_forum === 'No' ? 'checked' : '' }}
+                                                   class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                                            <span class="ml-2 text-sm text-gray-700">No</span>
+                                        </div>
+                                    </div>
+                                </div>
                                 
-                                <label class="flex items-center">
-                                    <input type="checkbox" name="small_business_matchmaker" value="1" 
-                                           {{ $attendee->small_business_matchmaker ? 'checked' : '' }}
-                                           class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
-                                    <span class="ml-2 text-sm text-gray-700">Small Business Matchmaker</span>
-                                </label>
+                                <div>
+                                    <label class="text-sm font-medium text-gray-700 mb-2 block">Small Business Matchmaker</label>
+                                    <div class="space-y-2">
+                                        <div class="flex items-center">
+                                            <input type="radio" name="small_business_matchmaker" value="Yes (In-person)" 
+                                                   {{ $attendee->small_business_matchmaker === 'Yes (In-person)' ? 'checked' : '' }}
+                                                   class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                                            <span class="ml-2 text-sm text-gray-700">Yes (In-person)</span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <input type="radio" name="small_business_matchmaker" value="No" 
+                                                   {{ $attendee->small_business_matchmaker === 'No' ? 'checked' : '' }}
+                                                   class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                                            <span class="ml-2 text-sm text-gray-700">No</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

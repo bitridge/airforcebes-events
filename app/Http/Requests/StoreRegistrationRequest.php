@@ -110,14 +110,19 @@ class StoreRegistrationRequest extends FormRequest
             // Preferences
             'meeting_preference' => [
                 'required',
-                'in:in_person,virtual,hybrid,no_preference',
+                'string',
+                'max:255',
             ],
             // Event Specific
             'small_business_forum' => [
-                'boolean',
+                'nullable',
+                'string',
+                'in:Yes (In-person),No',
             ],
             'small_business_matchmaker' => [
-                'boolean',
+                'nullable',
+                'string',
+                'in:Yes (In-person),No',
             ],
         ];
     }
@@ -160,7 +165,7 @@ class StoreRegistrationRequest extends FormRequest
             
             // Preferences
             'meeting_preference.required' => 'Meeting preference is required.',
-            'meeting_preference.in' => 'Please select a valid meeting preference.',
+            'meeting_preference.max' => 'Meeting preference cannot exceed 255 characters.',
         ];
     }
 

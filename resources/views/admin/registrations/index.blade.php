@@ -291,10 +291,6 @@
                 { key: 'organization_name', label: 'Organization Name', required: true },
                 { key: 'title', label: 'Job Title', required: false },
                 
-                // Registration Type
-                { key: 'type', label: 'Registration Type', required: false },
-                { key: 'checkin_type', label: 'Check-in Type', required: false },
-                
                 // Business Information
                 { key: 'naics_codes', label: 'NAICS Codes', required: false },
                 { key: 'industry_connections', label: 'Industry Connections', required: false },
@@ -320,8 +316,6 @@
                 'phone': ['Phone', 'Phone Number', 'Telephone', 'Mobile', 'Cell'],
                 'organization_name': ['Organization Name', 'Organization', 'Company', 'Company Name', 'Employer'],
                 'title': ['Job Title', 'Title', 'Position', 'Job Position', 'Role'],
-                'type': ['Registration Type', 'Type', 'Reg Type', 'Category'],
-                'checkin_type': ['Check-in Type', 'Checkin Type', 'Check In Type', 'Checkin'],
                 'naics_codes': ['NAICS Codes', 'NAICS', 'NAICS Code', 'Industry Codes'],
                 'industry_connections': ['Industry Connections', 'Industry', 'Connections', 'Industry Type'],
                 'core_specialty_area': ['Core Specialty Area', 'Specialty', 'Core Specialty', 'Specialty Area'],
@@ -416,10 +410,10 @@
 
         function downloadTemplate() {
             const csvContent = [
-                'First Name,Last Name,Email,Phone,Organization Name,Job Title,Registration Type,Check-in Type,NAICS Codes,Industry Connections,Core Specialty Area,Contract Vehicles,Meeting Preference,Small Business Forum,Small Business Matchmaker,Notes',
-                'John,Doe,john.doe@example.com,+1234567890,ABC Company,Software Engineer,registration,standard,541511,Technology,Software Development,IDIQ,no_preference,true,false,First time attendee',
-                'Jane,Smith,jane.smith@example.com,+1234567892,XYZ Corp,Project Manager,registration,standard,541512,Consulting,Project Management,GWAC,prefer_afternoon,false,true,',
-                'Bob,Johnson,bob.johnson@example.com,+1234567894,123 Industries,Business Analyst,registration,standard,541519,Manufacturing,Analysis,IDIQ,prefer_morning,true,true,Looking forward to the event'
+                'First Name,Last Name,Email,Phone,Organization Name,Job Title,NAICS Codes,Industry Connections,Core Specialty Area,Contract Vehicles,Meeting Preference,Small Business Forum,Small Business Matchmaker,Notes',
+                'John,Doe,john.doe@example.com,+1234567890,ABC Company,Software Engineer,541511,Technology,Software Development,IDIQ,In-person,Yes (In-person),No,First time attendee',
+                'Jane,Smith,jane.smith@example.com,+1234567892,XYZ Corp,Project Manager,541512,Consulting,Project Management,GWAC,Afternoon preference,No,Yes (In-person),',
+                'Bob,Johnson,bob.johnson@example.com,+1234567894,123 Industries,Business Analyst,541519,Manufacturing,Analysis,IDIQ,Morning preference,Yes (In-person),Yes (In-person),Looking forward to the event'
             ].join('\n');
             
             const blob = new Blob([csvContent], { type: 'text/csv' });

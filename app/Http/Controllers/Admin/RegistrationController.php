@@ -31,7 +31,8 @@ class RegistrationController extends Controller
                 $search = $request->search;
                 $query->where(function ($q) use ($search) {
                     $q->whereHas('user', function ($userQuery) use ($search) {
-                        $userQuery->where('name', 'like', "%{$search}%")
+                        $userQuery->where('first_name', 'like', "%{$search}%")
+                                  ->orWhere('last_name', 'like', "%{$search}%")
                                   ->orWhere('email', 'like', "%{$search}%");
                     })
                     ->orWhere('registration_code', 'like', "%{$search}%");
@@ -437,7 +438,7 @@ class RegistrationController extends Controller
         
         // Headers
         fputcsv($file, [
-            'Registration Code', 'Event', 'Attendee Name', 'Email', 'Phone', 'Organization',
+            'Registration Code', 'Event', 'Attendee Name', 'Email', 'Phone', 'Organization Name',
             'Registration Date', 'Status', 'Check-in Status', 'Check-in Time', 'Check-in Method'
         ]);
         
@@ -445,10 +446,10 @@ class RegistrationController extends Controller
             fputcsv($file, [
                 $registration->registration_code,
                 $registration->event->title,
-                $registration->user->name,
+                $registration->user->full_name,
                 $registration->user->email,
                 $registration->user->phone ?? '',
-                $registration->user->organization ?? '',
+                $registration->user->organization_name ?? '',
                 $registration->registration_date->format('Y-m-d H:i:s'),
                 $registration->status,
                 $registration->checkIn ? 'Checked In' : 'Not Checked In',
@@ -744,14 +745,12 @@ class RegistrationController extends Controller
                     $user = User::firstOrCreate(
                         ['email' => $email],
                         [
-                            'name' => $firstName . ' ' . $lastName,
                             'first_name' => $firstName,
                             'last_name' => $lastName,
                             'role' => 'attendee',
                             'password' => bcrypt($this->generateRandomPassword()),
                             'email_verified_at' => now(),
                             'phone' => trim($row[$mapping['phone'] ?? ''] ?? ''),
-                            'organization' => trim($row[$mapping['organization_name'] ?? ''] ?? ''),
                             'organization_name' => trim($row[$mapping['organization_name'] ?? ''] ?? ''),
                             'title' => trim($row[$mapping['title'] ?? ''] ?? ''),
                             'naics_codes' => trim($row[$mapping['naics_codes'] ?? ''] ?? ''),
@@ -768,7 +767,7 @@ class RegistrationController extends Controller
                     if ($user->wasRecentlyCreated) {
                         Log::info('New user created during CSV import', [
                             'email' => $email,
-                            'name' => $firstName . ' ' . $lastName,
+                            'full_name' => $user->full_name,
                             'row' => $rowIndex + 2
                         ]);
                     } else {
@@ -789,28 +788,15 @@ class RegistrationController extends Controller
                         continue;
                     }
 
-                    // Create registration
+                    // Create registration with only registration-specific fields
                     $registration = Registration::create([
                         'event_id' => $event->id,
                         'user_id' => $user->id,
                         'status' => 'confirmed', // Automatically confirmed
                         'registration_code' => $this->generateRegistrationCode(),
                         'qr_code_data' => $this->generateQrCodeData($event, $user),
-                        'first_name' => $firstName,
-                        'last_name' => $lastName,
-                        'email' => $email,
-                        'phone' => trim($row[$mapping['phone'] ?? ''] ?? ''),
-                        'organization_name' => trim($row[$mapping['organization_name'] ?? ''] ?? ''),
-                        'title' => trim($row[$mapping['title'] ?? ''] ?? ''),
                         'type' => trim($row[$mapping['type'] ?? ''] ?? 'registration'),
                         'checkin_type' => trim($row[$mapping['checkin_type'] ?? ''] ?? 'standard'),
-                        'naics_codes' => trim($row[$mapping['naics_codes'] ?? ''] ?? ''),
-                        'industry_connections' => trim($row[$mapping['industry_connections'] ?? ''] ?? ''),
-                        'core_specialty_area' => trim($row[$mapping['core_specialty_area'] ?? ''] ?? ''),
-                        'contract_vehicles' => trim($row[$mapping['contract_vehicles'] ?? ''] ?? ''),
-                        'meeting_preference' => $this->normalizeMeetingPreference(trim($row[$mapping['meeting_preference'] ?? ''] ?? '')),
-                        'small_business_forum' => $this->normalizeBoolean(trim($row[$mapping['small_business_forum'] ?? ''] ?? '')),
-                        'small_business_matchmaker' => $this->normalizeBoolean(trim($row[$mapping['small_business_matchmaker'] ?? ''] ?? '')),
                         'notes' => trim($row[$mapping['notes'] ?? ''] ?? ''),
                         'registration_date' => now(),
                     ]);
@@ -849,7 +835,7 @@ class RegistrationController extends Controller
                 'event_title' => $event->title,
                 'imported' => $imported,
                 'skipped' => $skipped,
-                'errors' => $errors,
+                'errors_count' => count($errors),
                 'admin_user_id' => auth()->id(),
             ]);
 
@@ -863,16 +849,17 @@ class RegistrationController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-
+            
             Log::error('CSV import failed', [
+                'event_id' => $request->event_id ?? 'unknown',
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
                 'admin_user_id' => auth()->id(),
-                'trace' => $e->getTraceAsString()
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Import failed: ' . $e->getMessage(),
+                'message' => 'CSV import failed: ' . $e->getMessage(),
             ], 500);
         }
     }

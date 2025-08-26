@@ -9,7 +9,7 @@
             <div class="flex justify-between items-center mb-6">
                 <div>
                     <h1 class="text-2xl font-semibold text-gray-900">Attendee Profile</h1>
-                    <p class="text-gray-600">{{ $attendee->name }}</p>
+                    <p class="text-gray-600">{{ $attendee->full_name }}</p>
                 </div>
                 <div class="flex space-x-3">
                     <a href="{{ route('admin.attendees.edit', $attendee) }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
@@ -44,7 +44,7 @@
                             <dl class="space-y-2">
                                 <div>
                                     <dt class="text-sm font-medium text-gray-500">Full Name</dt>
-                                    <dd class="text-sm text-gray-900">{{ $attendee->name }}</dd>
+                                    <dd class="text-sm text-gray-900">{{ $attendee->full_name }}</dd>
                                 </div>
                                 <div>
                                     <dt class="text-sm font-medium text-gray-500">Email</dt>

@@ -162,7 +162,7 @@
                                                 </div>
                                             </td>
                                             <td class="px-6 py-4">
-                                                <div class="text-sm font-medium text-gray-900">{{ $attendee->name }}</div>
+                                                <div class="text-sm font-medium text-gray-900">{{ $attendee->full_name }}</div>
                                                 <div class="text-sm text-gray-500">{{ $attendee->email }}</div>
                                                 @if($attendee->phone)
                                                     <div class="text-sm text-gray-500">{{ $attendee->phone }}</div>
@@ -246,7 +246,7 @@
                                     @foreach($attendees as $attendee)
                                         <tr>
                                             <td class="px-6 py-4">
-                                                <div class="text-sm font-medium text-gray-900">{{ $attendee->name }}</div>
+                                                <div class="text-sm font-medium text-gray-900">{{ $attendee->full_name }}</div>
                                                 <div class="text-sm text-gray-500">{{ $attendee->email }}</div>
                                                 @if($attendee->phone)
                                                     <div class="text-sm text-gray-500">{{ $attendee->phone }}</div>

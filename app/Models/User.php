@@ -19,7 +19,6 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
         'email',
         'password',
         'role',
@@ -214,11 +213,34 @@ class User extends Authenticatable
     /**
      * Get the user's full name.
      */
-    protected function fullName(): Attribute
+    public function getFullNameAttribute(): string
     {
-        return Attribute::make(
-            get: fn () => $this->name,
-        );
+        $parts = array_filter([$this->first_name, $this->last_name]);
+        return implode(' ', $parts) ?: 'Unknown User';
+    }
+
+    /**
+     * Get the user's display name (full name or email fallback).
+     */
+    public function getDisplayNameAttribute(): string
+    {
+        $fullName = $this->full_name;
+        return $fullName !== 'Unknown User' ? $fullName : $this->email;
+    }
+
+    /**
+     * Get the user's initials.
+     */
+    public function getInitialsAttribute(): string
+    {
+        $initials = '';
+        if ($this->first_name) {
+            $initials .= strtoupper(substr($this->first_name, 0, 1));
+        }
+        if ($this->last_name) {
+            $initials .= strtoupper(substr($this->last_name, 0, 1));
+        }
+        return $initials ?: 'U';
     }
 
     /**
@@ -263,27 +285,6 @@ class User extends Authenticatable
                 
                 // Store phone with minimal formatting
                 return preg_replace('/[^0-9+\-\s\(\)]/', '', $value);
-            }
-        );
-    }
-
-    /**
-     * Get the user's initials.
-     */
-    protected function initials(): Attribute
-    {
-        return Attribute::make(
-            get: function () {
-                $nameParts = explode(' ', trim($this->name));
-                $initials = '';
-                
-                foreach ($nameParts as $part) {
-                    if (!empty($part)) {
-                        $initials .= strtoupper(substr($part, 0, 1));
-                    }
-                }
-                
-                return $initials ?: strtoupper(substr($this->name, 0, 2));
             }
         );
     }

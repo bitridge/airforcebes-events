@@ -188,9 +188,6 @@ class AttendeeController extends Controller
                 'is_active' => $request->boolean('is_active'),
             ];
 
-            // Update the name field from first_name and last_name
-            $updateData['name'] = trim($request->first_name . ' ' . $request->last_name);
-
             // Update the attendee
             $attendee->update($updateData);
 
@@ -307,7 +304,7 @@ class AttendeeController extends Controller
             $lastRegistration = $attendee->registrations->max('registration_date');
             
             fputcsv($file, [
-                $attendee->name,
+                $attendee->full_name,
                 $attendee->email,
                 $attendee->phone ?? '',
                 $attendee->organization_name ?? '',

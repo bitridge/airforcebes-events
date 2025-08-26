@@ -74,11 +74,11 @@
                                         <div class="flex items-center">
                                             <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
                                                 <span class="text-sm font-medium text-gray-700">
-                                                    {{ strtoupper(substr($attendee->name, 0, 2)) }}
+                                                    {{ strtoupper(substr($attendee->full_name, 0, 2)) }}
                                                 </span>
                                             </div>
                                             <div>
-                                                <a href="{{ route('admin.attendees.show', $attendee) }}" class="text-sm font-medium text-gray-900 hover:text-indigo-600 hover:underline">{{ $attendee->name }}</a>
+                                                <a href="{{ route('admin.attendees.show', $attendee) }}" class="text-sm font-medium text-gray-900 hover:text-indigo-600 hover:underline">{{ $attendee->full_name }}</a>
                                                 <div class="text-sm text-gray-500">ID: {{ $attendee->id }}</div>
                                             </div>
                                         </div>

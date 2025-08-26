@@ -22,21 +22,8 @@ class Registration extends Model
         'registration_date',
         'status',
         'notes',
-        'first_name',
-        'last_name',
-        'email',
-        'phone',
-        'organization_name',
-        'title',
         'type',
         'checkin_type',
-        'naics_codes',
-        'industry_connections',
-        'core_specialty_area',
-        'contract_vehicles',
-        'meeting_preference',
-        'small_business_forum',
-        'small_business_matchmaker',
     ];
 
     protected function casts(): array
@@ -252,10 +239,126 @@ class Registration extends Model
                     'is_checked_in' => true,
                     'checked_in_at' => $checkIn->checked_in_at,
                     'check_in_method' => $checkIn->check_in_method,
-                    'checked_in_by' => $checkIn->checkedInBy?->name,
+                    'checked_in_by' => $checkIn->checkedInBy?->full_name,
                 ];
             }
         );
+    }
+
+    // =====================================================
+    // USER DATA ACCESSORS (from user relationship)
+    // =====================================================
+
+    /**
+     * Get user's first name (from user relationship).
+     */
+    public function getFirstNameAttribute(): string
+    {
+        return $this->user?->first_name ?? '';
+    }
+
+    /**
+     * Get user's last name (from user relationship).
+     */
+    public function getLastNameAttribute(): string
+    {
+        return $this->user?->last_name ?? '';
+    }
+
+    /**
+     * Get user's full name (from user relationship).
+     */
+    public function getFullNameAttribute(): string
+    {
+        return $this->user?->full_name ?? '';
+    }
+
+    /**
+     * Get user's email (from user relationship).
+     */
+    public function getEmailAttribute(): string
+    {
+        return $this->user?->email ?? '';
+    }
+
+    /**
+     * Get user's phone (from user relationship).
+     */
+    public function getPhoneAttribute(): string
+    {
+        return $this->user?->phone ?? '';
+    }
+
+    /**
+     * Get user's organization name (from user relationship).
+     */
+    public function getOrganizationNameAttribute(): string
+    {
+        return $this->user?->organization_name ?? '';
+    }
+
+    /**
+     * Get user's title (from user relationship).
+     */
+    public function getTitleAttribute(): string
+    {
+        return $this->user?->title ?? '';
+    }
+
+    /**
+     * Get user's NAICS codes (from user relationship).
+     */
+    public function getNaicsCodesAttribute(): string
+    {
+        return $this->user?->naics_codes ?? '';
+    }
+
+    /**
+     * Get user's industry connections (from user relationship).
+     */
+    public function getIndustryConnectionsAttribute(): string
+    {
+        return $this->user?->industry_connections ?? '';
+    }
+
+    /**
+     * Get user's core specialty area (from user relationship).
+     */
+    public function getCoreSpecialtyAreaAttribute(): string
+    {
+        return $this->user?->core_specialty_area ?? '';
+    }
+
+    /**
+     * Get user's contract vehicles (from user relationship).
+     */
+    public function getContractVehiclesAttribute(): string
+    {
+        return $this->user?->contract_vehicles ?? '';
+    }
+
+    /**
+     * Get user's meeting preference (from user relationship).
+     */
+    public function getMeetingPreferenceAttribute(): string
+    {
+        return $this->user?->meeting_preference ?? 'no_preference';
+    }
+
+    /**
+     * Get user's small business forum preference (from user relationship).
+     */
+    public function getSmallBusinessForumAttribute(): bool
+    {
+        return $this->user?->small_business_forum ?? false;
+    }
+
+    /**
+     * Get user's small business matchmaker preference (from user relationship).
+     */
+    public function getSmallBusinessMatchmakerAttribute(): bool
+    {
+        return $this->user?->small_business_matchmaker ?? false;
     }
 
     // =====================================================
@@ -658,47 +761,26 @@ class Registration extends Model
     }
 
     /**
-     * Get the full name of the registrant
-     */
-    public function getFullNameAttribute(): string
-    {
-        if ($this->first_name && $this->last_name) {
-            return trim($this->first_name . ' ' . $this->last_name);
-        }
-        
-        // Fallback to user name if available
-        if ($this->user) {
-            return $this->user->name;
-        }
-        
-        return 'Unknown';
-    }
-
-    /**
      * Get the display name (first + last or user name)
      */
     public function getDisplayNameAttribute(): string
     {
-        if ($this->first_name && $this->last_name) {
-            return trim($this->first_name . ' ' . $this->last_name);
-        }
-        
-        return $this->user->name ?? 'Unknown';
+        return $this->user?->full_name ?? 'Unknown';
     }
 
     /**
-     * Get the contact email (registration email or user email)
+     * Get the contact email (from user)
      */
     public function getContactEmailAttribute(): string
     {
-        return $this->email ?? $this->user->email ?? 'No email';
+        return $this->user?->email ?? 'No email';
     }
 
     /**
-     * Get the contact phone (registration phone or user phone)
+     * Get the contact phone (from user)
      */
     public function getContactPhoneAttribute(): string
     {
-        return $this->phone ?? $this->user->phone ?? 'No phone';
+        return $this->user?->phone ?? 'No phone';
     }
 }

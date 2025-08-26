@@ -45,10 +45,7 @@ class ProfileController extends Controller
         // Update other fields
         $user->fill($request->except('profile_picture'));
 
-        // Ensure name is constructed from first_name and last_name
-        if ($request->filled('first_name') && $request->filled('last_name')) {
-            $user->name = $request->first_name . ' ' . $request->last_name;
-        }
+        // Note: name field is no longer used, we use first_name + last_name with accessor
 
         // Handle boolean fields
         $user->small_business_forum = $request->boolean('small_business_forum');

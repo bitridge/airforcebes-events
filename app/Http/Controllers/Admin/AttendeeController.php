@@ -45,8 +45,14 @@ class AttendeeController extends Controller
         }
 
         // Sort
-        $sortBy = $request->get('sort_by', 'name');
+        $sortBy = $request->get('sort_by', 'first_name');
         $sortDir = $request->get('sort_dir', 'asc');
+        
+        // Handle special sorting for full name
+        if ($sortBy === 'name') {
+            $sortBy = 'first_name';
+        }
+        
         $query->orderBy($sortBy, $sortDir);
 
         $attendees = $query->paginate(20)->withQueryString();
@@ -86,7 +92,7 @@ class AttendeeController extends Controller
             // Debug logging
             Log::info('Admin attendee show page loaded', [
                 'attendee_id' => $attendee->id,
-                'attendee_name' => $attendee->name,
+                'attendee_name' => $attendee->full_name,
                 'registrations_count' => $attendee->registrations->count(),
                 'checkins_count' => $attendee->checkIns->count(),
                 'method' => 'show'
@@ -125,7 +131,7 @@ class AttendeeController extends Controller
 
             Log::info('Admin attendee edit page loaded', [
                 'attendee_id' => $attendee->id,
-                'attendee_name' => $attendee->name,
+                'attendee_name' => $attendee->full_name,
                 'method' => 'edit'
             ]);
 
@@ -378,7 +384,7 @@ class AttendeeController extends Controller
             // Log the deletion
             Log::info('Attendee account deleted', [
                 'attendee_id' => $attendee->id,
-                'attendee_name' => $attendee->name,
+                'attendee_name' => $attendee->full_name,
                 'attendee_email' => $attendee->email,
                 'admin_user_id' => auth()->id()
             ]);

@@ -258,7 +258,7 @@ class RegistrationController extends Controller
                 'registration_id' => $registration->id,
                 'user_id' => auth()->id(),
                 'event_title' => $registration->event->title,
-                'attendee_name' => $registration->user->name
+                'attendee_name' => $registration->user->full_name
             ]);
 
             $registration->delete();

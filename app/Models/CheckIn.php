@@ -385,7 +385,7 @@ class CheckIn extends Model
             if ($registration->isCheckedIn()) {
                 $results['already_checked_in'][] = [
                     'code' => $code,
-                    'user' => $registration->user->name,
+                    'user' => $registration->user->full_name,
                 ];
                 continue;
             }
@@ -395,7 +395,7 @@ class CheckIn extends Model
             if ($checkIn) {
                 $results['successful'][] = [
                     'code' => $code,
-                    'user' => $registration->user->name,
+                    'user' => $registration->user->full_name,
                     'check_in_id' => $checkIn->id,
                 ];
             } else {
@@ -460,11 +460,11 @@ class CheckIn extends Model
             'method_color' => $this->check_in_method_color,
             'is_self_check_in' => $this->isSelfCheckIn(),
             'is_admin_assisted' => $this->isAdminAssisted(),
-            'checked_in_by' => $this->checkedInBy?->name,
+            'checked_in_by' => $this->checkedInBy?->full_name,
             'registration' => [
                 'id' => $this->registration->id,
                 'code' => $this->registration->registration_code,
-                'user' => $this->registration->user->name,
+                'user' => $this->registration->user->full_name,
                 'user_email' => $this->registration->user->email,
             ],
             'event' => [

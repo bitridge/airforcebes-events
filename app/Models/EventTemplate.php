@@ -110,7 +110,7 @@ class EventTemplate extends Model
      */
     public function getDisplayNameAttribute(): string
     {
-        return $this->name;
+        return $this->full_name;
     }
 
     /**
@@ -301,7 +301,7 @@ class EventTemplate extends Model
      */
     public function duplicate(string $newName = null): EventTemplate
     {
-        $newName = $newName ?? $this->name . ' (Copy)';
+        $newName = $newName ?? $this->full_name . ' (Copy)';
 
         return static::create([
             'name' => $newName,

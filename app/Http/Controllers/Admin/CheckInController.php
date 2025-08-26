@@ -143,7 +143,7 @@ class CheckInController extends Controller
                 return [
                     'id' => $registration->id,
                     'registration_code' => $registration->registration_code,
-                    'user_name' => $registration->user->name,
+                    'user_name' => $registration->user->full_name,
                     'user_email' => $registration->user->email,
                     'event_title' => $registration->event->title,
                     'event_date' => $registration->event->formatted_date_range,
@@ -185,7 +185,7 @@ class CheckInController extends Controller
                 $results[] = [
                     'registration_id' => $registrationId,
                     'registration_code' => $registration->registration_code,
-                    'user_name' => $registration->user->name,
+                    'user_name' => $registration->user->full_name,
                     'success' => $resultData['success'],
                     'message' => $resultData['message'],
                 ];
@@ -195,7 +195,7 @@ class CheckInController extends Controller
                 $results[] = [
                     'registration_id' => $registrationId,
                     'registration_code' => $registration->registration_code,
-                    'user_name' => $registration->user->name,
+                    'user_name' => $registration->user->full_name,
                     'success' => false,
                     'message' => 'Check-in failed: ' . $e->getMessage(),
                 ];
@@ -238,13 +238,13 @@ class CheckInController extends Controller
         foreach ($registrations as $registration) {
             $csvData[] = [
                 $registration->registration_code,
-                $registration->user->name,
+                $registration->user->full_name,
                 $registration->user->email,
                 $registration->registration_date->format('Y-m-d H:i:s'),
                 $registration->isCheckedIn() ? 'Checked In' : 'Not Checked In',
                 $registration->checkIn?->checked_in_at?->format('Y-m-d H:i:s') ?? '',
                 $registration->checkIn?->check_in_method_display_name ?? '',
-                $registration->checkIn?->checkedInBy?->name ?? '',
+                $registration->checkIn?->checkedInBy?->full_name ?? '',
             ];
         }
 
@@ -291,7 +291,7 @@ class CheckInController extends Controller
                     'message' => 'This registration is already checked in.',
                     'registration' => [
                         'code' => $registration->registration_code,
-                        'user_name' => $registration->user->name,
+                        'user_name' => $registration->user->full_name,
                         'event_title' => $registration->event->title,
                         'checked_in_at' => $registration->checkIn->formatted_checked_in_at,
                     ],
@@ -317,7 +317,7 @@ class CheckInController extends Controller
                 'registration' => [
                     'id' => $registration->id,
                     'code' => $registration->registration_code,
-                    'user_name' => $registration->user->name,
+                    'user_name' => $registration->user->full_name,
                     'user_email' => $registration->user->email,
                     'event_title' => $registration->event->title,
                     'event_date' => $registration->event->formatted_date_range,

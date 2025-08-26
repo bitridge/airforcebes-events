@@ -126,7 +126,7 @@ class EventFeedback extends Model
             return 'Anonymous';
         }
 
-        return $this->user->name ?? 'Unknown User';
+        return $this->user->full_name ?? 'Unknown User';
     }
 
     /**

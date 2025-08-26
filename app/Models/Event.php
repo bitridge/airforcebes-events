@@ -1206,7 +1206,7 @@ class Event extends Model
      */
     public function getCategoryName(): ?string
     {
-        return $this->category?->name;
+        return $this->category?->full_name;
     }
 
     /**
@@ -1214,7 +1214,7 @@ class Event extends Model
      */
     public function getSeriesName(): ?string
     {
-        return $this->series?->name;
+        return $this->series?->full_name;
     }
 
     /**

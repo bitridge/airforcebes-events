@@ -315,7 +315,7 @@ class EventController extends Controller
         
         foreach ($registrations as $registration) {
             fputcsv($file, [
-                $registration->user->name,
+                $registration->user->full_name,
                 $registration->user->email,
                 $registration->user->phone,
                 $registration->user->organization,
@@ -346,11 +346,11 @@ class EventController extends Controller
         
         foreach ($checkIns as $checkIn) {
             fputcsv($file, [
-                $checkIn->registration->user->name,
+                $checkIn->registration->user->full_name,
                 $checkIn->registration->user->email,
                 $checkIn->checked_in_at->format('Y-m-d H:i:s'),
                 $checkIn->check_in_method,
-                $checkIn->checkedInBy->name ?? 'System'
+                $checkIn->checkedInBy->full_name ?? 'System'
             ]);
         }
         

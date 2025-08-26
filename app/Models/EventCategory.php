@@ -32,13 +32,13 @@ class EventCategory extends Model
 
         static::creating(function ($category) {
             if (empty($category->slug)) {
-                $category->slug = Str::slug($category->name);
+                $category->slug = Str::slug($category->full_name);
             }
         });
 
         static::updating(function ($category) {
             if ($category->isDirty('name') && empty($category->slug)) {
-                $category->slug = Str::slug($category->name);
+                $category->slug = Str::slug($category->full_name);
             }
         });
     }
@@ -72,7 +72,7 @@ class EventCategory extends Model
      */
     public function getDisplayNameAttribute(): string
     {
-        return $this->name;
+        return $this->full_name;
     }
 
     /**

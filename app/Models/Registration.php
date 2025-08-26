@@ -659,7 +659,7 @@ class Registration extends Model
             ],
             'user' => [
                 'id' => $this->user->id,
-                'name' => $this->user->name,
+                'name' => $this->user->full_name,
                 'email' => $this->user->email,
             ],
         ];

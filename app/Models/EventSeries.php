@@ -30,13 +30,13 @@ class EventSeries extends Model
 
         static::creating(function ($series) {
             if (empty($series->slug)) {
-                $series->slug = Str::slug($series->name);
+                $series->slug = Str::slug($series->full_name);
             }
         });
 
         static::updating(function ($series) {
             if ($series->isDirty('name') && empty($series->slug)) {
-                $series->slug = Str::slug($series->name);
+                $series->slug = Str::slug($series->full_name);
             }
         });
     }
@@ -94,7 +94,7 @@ class EventSeries extends Model
      */
     public function getDisplayNameAttribute(): string
     {
-        return $this->name;
+        return $this->full_name;
     }
 
     /**

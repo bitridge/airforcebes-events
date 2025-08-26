@@ -50,10 +50,10 @@ class AuthenticatedSessionController extends Controller
 
         // Default redirects based on role
         if ($user->isAdmin()) {
-            return redirect()->route('admin.dashboard')->with('success', 'Welcome back, ' . $user->name . '!');
+            return redirect()->route('admin.dashboard')->with('success', 'Welcome back, ' . $user->full_name . '!');
         }
 
-        return redirect()->route('events.index')->with('success', 'Welcome back, ' . $user->name . '!');
+        return redirect()->route('events.index')->with('success', 'Welcome back, ' . $user->full_name . '!');
     }
 
     /**

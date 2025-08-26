@@ -47,18 +47,33 @@
                     </div>
                 </div>
 
-                <!-- Name -->
-                <div>
-                    <label for="name" class="block text-sm font-medium text-gray-700">Full Name</label>
-                    <input type="text" 
-                           id="name" 
-                           name="name" 
-                           value="{{ old('name', $user->name) }}" 
-                           required
-                           class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                    @error('name')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
+                <!-- First Name and Last Name -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="first_name" class="block text-sm font-medium text-gray-700">First Name *</label>
+                        <input type="text" 
+                               id="first_name" 
+                               name="first_name" 
+                               value="{{ old('first_name', $user->first_name) }}" 
+                               required
+                               class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        @error('first_name')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="last_name" class="block text-sm font-medium text-gray-700">Last Name *</label>
+                        <input type="text" 
+                               id="last_name" 
+                               name="last_name" 
+                               value="{{ old('last_name', $user->last_name) }}" 
+                               required
+                               class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:border-indigo-500">
+                        @error('last_name')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
 
                 <!-- Email -->

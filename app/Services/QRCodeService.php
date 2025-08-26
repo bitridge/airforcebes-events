@@ -95,7 +95,7 @@ class QRCodeService
             if ($registration->isCheckedIn()) {
                 return $this->validationError('Already checked in', [
                     'checked_in_at' => $registration->checkIn->checked_in_at,
-                    'checked_in_by' => $registration->checkIn->checkedInBy->name ?? 'Unknown',
+                    'checked_in_by' => $registration->checkIn->checkedInBy->full_name ?? 'Unknown',
                 ]);
             }
 
@@ -220,7 +220,7 @@ class QRCodeService
             'event_id' => $registration->event_id,
             'user_id' => $registration->user_id,
             'event_title' => $registration->event->title,
-            'user_name' => $registration->user->name,
+            'user_name' => $registration->user->full_name,
             'registration_date' => $registration->registration_date->toISOString(),
             'generated_at' => now()->toISOString(),
             'expires_at' => $registration->event->end_date->addDays(1)->toISOString(),

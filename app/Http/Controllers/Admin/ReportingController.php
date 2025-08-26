@@ -441,7 +441,7 @@ class ReportingController extends Controller
         
         foreach ($event->registrations as $registration) {
             fputcsv($file, [
-                $registration->user->name,
+                $registration->user->full_name,
                 $registration->user->email,
                 $registration->user->phone ?? '',
                 $registration->user->organization ?? '',
@@ -484,7 +484,7 @@ class ReportingController extends Controller
         $repeatAttendees = $this->getRepeatAttendees($startDate)['top_repeat_attendees'];
         foreach ($repeatAttendees as $attendee) {
             fputcsv($file, [
-                $attendee->name,
+                $attendee->full_name,
                 $attendee->email,
                 $attendee->organization ?? '',
                 $attendee->registrations_count,

@@ -28,13 +28,13 @@ class EventTag extends Model
 
         static::creating(function ($tag) {
             if (empty($tag->slug)) {
-                $tag->slug = Str::slug($tag->name);
+                $tag->slug = Str::slug($tag->full_name);
             }
         });
 
         static::updating(function ($tag) {
             if ($tag->isDirty('name') && empty($tag->slug)) {
-                $tag->slug = Str::slug($tag->name);
+                $tag->slug = Str::slug($tag->full_name);
             }
         });
     }
@@ -68,7 +68,7 @@ class EventTag extends Model
      */
     public function getDisplayNameAttribute(): string
     {
-        return $this->name;
+        return $this->full_name;
     }
 
     /**

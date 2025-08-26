@@ -113,7 +113,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div>
-                                            <a href="{{ route('admin.attendees.show', $registration->user) }}" class="text-sm font-medium text-gray-900 hover:text-indigo-600 hover:underline">{{ $registration->user->name }}</a>
+                                            <a href="{{ route('admin.attendees.show', $registration->user) }}" class="text-sm font-medium text-gray-900 hover:text-indigo-600 hover:underline">{{ $registration->user->full_name }}</a>
                                             <div class="text-sm text-gray-500">{{ $registration->user->email }}</div>
                                             @if($registration->user->phone)
                                                 <div class="text-sm text-gray-500">{{ $registration->user->phone }}</div>

@@ -42,3 +42,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    deploy:
+      post_deploy:
+        - command: "php artisan config:clear && php artisan cache:clear && php artisan route:clear && php artisan view:clear && php artisan migrate --force"

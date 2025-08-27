@@ -52,10 +52,5 @@ bootstrap/cache/
 *.tmp
 *.temp
 
-# Docker files
-docker-compose*.yml
-Dockerfile*
-.dockerignore
-
 # Coolify files
 coolify.yaml

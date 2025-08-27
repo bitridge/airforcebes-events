@@ -21,20 +21,22 @@ RUN apt-get update && apt-get install -y \
 # Install Composer
 COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 
-# Copy composer files first for better caching
-COPY composer.json composer.lock ./
-
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction
-
-# Copy application code
+# Copy application code first (including app/helpers.php)
 COPY . .
 
-# Copy nginx configuration
+# Create nginx configuration directory and copy config
+RUN mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled
 COPY nginx/conf.d/default.conf /etc/nginx/sites-available/default
+RUN ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 
 # Copy supervisor configuration
 COPY docker/supervisor.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Create supervisor log directories
+RUN mkdir -p /var/log/supervisor
+
+# Install PHP dependencies (after copying code so app/helpers.php is available)
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www \
@@ -47,13 +49,15 @@ RUN mkdir -p /var/www/storage/logs \
     && mkdir -p /var/www/storage/framework/sessions \
     && mkdir -p /var/www/storage/framework/views
 
-# Generate Laravel application key if not exists
-RUN php artisan key:generate --no-interaction || true
+# Generate Laravel application key if not exists (skip if no .env)
+RUN if [ -f .env ]; then php artisan key:generate --no-interaction || true; fi
 
-# Optimize Laravel for production
-RUN php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
+# Optimize Laravel for production (skip if no .env)
+RUN if [ -f .env ]; then \
+        php artisan config:cache || true; \
+        php artisan route:cache || true; \
+        php artisan view:cache || true; \
+    fi
 
 # Expose port
 EXPOSE 80

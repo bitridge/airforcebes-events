@@ -31,9 +31,12 @@ services:
       MAIL_ENCRYPTION: ${MAIL_ENCRYPTION:-tls}
       MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS}
       MAIL_FROM_NAME: ${MAIL_FROM_NAME}
+      LOG_CHANNEL: ${LOG_CHANNEL:-stack}
+      LOG_LEVEL: ${LOG_LEVEL:-error}
     volumes:
       - ./storage:/var/www/storage
       - ./bootstrap/cache:/var/www/bootstrap/cache
+      - ./.env:/var/www/.env
     networks:
       - laravel
     healthcheck:
@@ -42,6 +45,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    depends_on: []
 
 networks:
   laravel:

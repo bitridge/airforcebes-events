@@ -67,8 +67,11 @@ RUN rm -f /etc/nginx/sites-enabled/default \
 # Install Composer dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Install npm dependencies and build frontend assets
-RUN npm install && npm run build
+# Clean npm cache and install dependencies fresh, then build frontend assets
+RUN rm -rf node_modules package-lock.json \
+    && npm cache clean --force \
+    && npm install \
+    && npm run build
 
 # Remove temporary .env file
 RUN rm -f .env

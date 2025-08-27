@@ -20,6 +20,12 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Node.js 20.x and npm
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install Composer
 COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 
@@ -60,6 +66,9 @@ RUN rm -f /etc/nginx/sites-enabled/default \
 
 # Install Composer dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# Install npm dependencies and build frontend assets
+RUN npm install && npm run build
 
 # Remove temporary .env file
 RUN rm -f .env

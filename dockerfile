@@ -41,6 +41,15 @@ RUN chown -R www-data:www-data /var/www \
     && chmod -R 775 /var/www/storage \
     && chmod -R 775 /var/www/bootstrap/cache
 
+# Create a temporary .env file for the build process with properly escaped values
+RUN echo 'APP_NAME="Meet Ups Pro"' > .env \
+    && echo 'APP_ENV=local' >> .env \
+    && echo 'APP_DEBUG=true' >> .env \
+    && echo 'APP_KEY=base64:tempkeyforbuildonly' >> .env \
+    && echo 'APP_URL=http://localhost' >> .env \
+    && echo 'DB_CONNECTION=sqlite' >> .env \
+    && echo 'DB_DATABASE=:memory:' >> .env
+
 # Copy configurations
 COPY nginx/conf.d/default.conf /etc/nginx/sites-available/default
 COPY docker/supervisor.conf /etc/supervisor/conf.d/supervisord.conf
@@ -51,6 +60,9 @@ RUN rm -f /etc/nginx/sites-enabled/default \
 
 # Install Composer dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# Remove temporary .env file
+RUN rm -f .env
 
 # Expose port
 EXPOSE 80

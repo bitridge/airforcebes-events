@@ -17,6 +17,7 @@ docs/
 .phpunit.result.cache
 phpunit.xml
 tests/
+.phpunit.cache/
 
 # Node modules and build files
 node_modules/
@@ -25,6 +26,9 @@ yarn-debug.log*
 yarn-error.log*
 package-lock.json
 yarn.lock
+postcss.config.js
+tailwind.config.js
+vite.config.js
 
 # IDE files
 .vscode/
@@ -54,3 +58,7 @@ bootstrap/cache/
 
 # Coolify files
 coolify.yaml
+
+# Editor config
+.editorconfig
+.cursorrules

@@ -27,8 +27,8 @@ class UpdateEventRequest extends FormRequest
             'description' => ['required', 'string', 'min:10'],
             'start_date' => ['required', 'date', 'after_or_equal:today'],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
-            'start_time' => ['nullable', 'date_format:H:i'],
-            'end_time' => ['nullable', 'date_format:H:i', 'after:start_time'],
+            'start_time' => ['nullable'],
+            'end_time' => ['nullable'],
             'venue' => ['required', 'string', 'max:255'],
             'max_capacity' => ['nullable', 'integer', 'min:1'],
             'registration_deadline' => [
@@ -60,9 +60,7 @@ class UpdateEventRequest extends FormRequest
             'start_date.after_or_equal' => 'Start date must be today or in the future.',
             'end_date.required' => 'End date is required.',
             'end_date.after_or_equal' => 'End date must be on or after start date.',
-            'start_time.date_format' => 'Start time must be in HH:MM format.',
-            'end_time.date_format' => 'End time must be in HH:MM format.',
-            'end_time.after' => 'End time must be after start time.',
+
             'venue.required' => 'Venue is required.',
             'max_capacity.integer' => 'Maximum capacity must be a number.',
             'max_capacity.min' => 'Maximum capacity must be at least 1.',

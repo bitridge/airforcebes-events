@@ -100,23 +100,15 @@
                             <div>
                                 <label for="start_time" class="block text-sm font-medium text-gray-700">Start Time</label>
                                 <input type="time" id="start_time" name="start_time" value="{{ old('start_time') }}"
-                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm time-24h"
+                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                        placeholder="09:00">
-                                <p class="mt-1 text-xs text-gray-500">Use 24-hour format (e.g., 09:00, 14:30)</p>
-                                @error('start_time')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
                             </div>
                             
                             <div>
                                 <label for="end_time" class="block text-sm font-medium text-gray-700">End Time</label>
                                 <input type="time" id="end_time" name="end_time" value="{{ old('end_time') }}"
-                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm time-24h"
+                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                        placeholder="17:00">
-                                <p class="mt-1 text-xs text-gray-500">Use 24-hour format (e.g., 09:00, 14:30)</p>
-                                @error('end_time')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
                             </div>
                         </div>
 

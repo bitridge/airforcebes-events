@@ -54,13 +54,10 @@ class StoreEventRequest extends FormRequest
                 'after_or_equal:start_date',
             ],
             'start_time' => [
-                'required',
-                'date_format:H:i',
+                'nullable',
             ],
             'end_time' => [
-                'required',
-                'date_format:H:i',
-                'after:start_time',
+                'nullable',
             ],
             'venue' => [
                 'required',
@@ -117,12 +114,7 @@ class StoreEventRequest extends FormRequest
             'end_date.required' => 'The end date is required.',
             'end_date.after_or_equal' => 'The end date must be on or after the start date.',
             
-            'start_time.required' => 'The start time is required.',
-            'start_time.date_format' => 'The start time must be in HH:MM format.',
-            
-            'end_time.required' => 'The end time is required.',
-            'end_time.date_format' => 'The end time must be in HH:MM format.',
-            'end_time.after' => 'The end time must be after the start time.',
+
             
             'venue.required' => 'The venue is required.',
             'venue.min' => 'The venue must be at least 3 characters.',
@@ -198,16 +190,6 @@ class StoreEventRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
-            // Custom validation: Check if end time is reasonable (not more than 24 hours after start time)
-            if ($this->start_date === $this->end_date) {
-                $startTime = \Carbon\Carbon::createFromFormat('H:i', $this->start_time ?? '00:00');
-                $endTime = \Carbon\Carbon::createFromFormat('H:i', $this->end_time ?? '00:00');
-                
-                if ($endTime->diffInHours($startTime) > 24) {
-                    $validator->errors()->add('end_time', 'Single day events cannot be longer than 24 hours.');
-                }
-            }
-
             // Custom validation: Check if registration deadline makes sense
             if ($this->registration_deadline && $this->start_date) {
                 $deadline = \Carbon\Carbon::parse($this->registration_deadline);

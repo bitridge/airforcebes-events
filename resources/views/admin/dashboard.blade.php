@@ -44,8 +44,8 @@
 @endpush
 
 @section('content')
-    <div class="py-8">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
+    <div class="py-6">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
             <!-- Quick Actions -->
             <div class="flex flex-wrap gap-3">
                 <a href="{{ route('admin.events.create') }}" class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Create Event</a>

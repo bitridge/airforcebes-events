@@ -5,7 +5,7 @@
 
 @section('content')
     <!-- Hero Section -->
-    <section class="bg-slate-800 text-white py-12">
+    <section class="bg-slate-800 text-white py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center">
                 <h1 class="text-4xl font-bold mb-4">Upcoming Events</h1>
@@ -82,7 +82,7 @@
     </section>
 
     <!-- Events Grid -->
-    <section class="py-12 bg-gray-50">
+    <section class="py-6 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             @if($events->count() > 0)
                 <!-- Results Info -->

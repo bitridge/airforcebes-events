@@ -6,7 +6,7 @@
 @section('content')
     <!-- Hero Section -->
     <section class="bg-slate-800 text-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div class="text-center">
                 <h1 class="text-4xl md:text-6xl font-bold mb-6">BES Event Management</h1>
                 <p class="text-xl md:text-2xl text-slate-300 mb-8 max-w-3xl mx-auto">
@@ -31,7 +31,7 @@
     </section>
 
     <!-- Statistics Section -->
-    <section class="bg-white py-16">
+    <section class="bg-white py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div class="text-center">
@@ -57,7 +57,7 @@
     @include('components.featured-events', ['events' => $featuredEvents])
 
     <!-- Call to Action Section -->
-    <section class="bg-slate-800 text-white py-16">
+    <section class="bg-slate-800 text-white py-6">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 class="text-3xl font-bold mb-4">Ready to Join Our Community?</h2>
             <p class="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">

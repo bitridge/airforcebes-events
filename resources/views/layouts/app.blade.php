@@ -77,7 +77,7 @@
             @endif
 
             <!-- Page Content -->
-            <main>
+            <main class="min-h-0">
                 @yield('content')
             </main>
 

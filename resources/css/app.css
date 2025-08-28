@@ -10,6 +10,84 @@
     overflow: hidden;
 }
 
+/* Remove unwanted spacing */
+main {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+/* Eliminate gaps between sections */
+section {
+    margin: 0;
+}
+
+section:last-of-type {
+    margin-bottom: 0;
+}
+
+/* Ensure footer sticks to content */
+footer {
+    margin-top: 0 !important;
+}
+
+/* Remove any default spacing from the last section */
+.bg-slate-800:last-of-type {
+    margin-bottom: 0;
+    padding-bottom: 1.5rem;
+}
+
+/* Force remove all margins and padding that could cause gaps */
+.min-h-screen > *:last-child {
+    margin-bottom: 0;
+}
+
+/* Ensure the last section before footer has no bottom margin */
+section:last-of-type,
+div:last-of-type {
+    margin-bottom: 0 !important;
+}
+
+/* Remove any potential spacing from the main content wrapper */
+.min-h-screen {
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+    margin: 0;
+    padding: 0;
+}
+
+/* Ensure footer has absolutely no top margin */
+footer {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+/* Final aggressive spacing removal */
+* {
+    margin-bottom: 0;
+}
+
+section:last-of-type,
+div:last-of-type,
+main > *:last-child {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Ensure the last element before footer has no spacing */
+main > *:last-child {
+    margin: 0 !important;
+    padding-bottom: 0 !important;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
     width: 8px;

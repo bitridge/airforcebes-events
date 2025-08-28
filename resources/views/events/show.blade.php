@@ -9,7 +9,7 @@
 
 @section('content')
     <!-- Event Header -->
-    <section class="bg-slate-800 text-white py-16">
+    <section class="bg-slate-800 text-white py-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Event Image -->
@@ -96,7 +96,7 @@
     </section>
 
     <!-- Event Content -->
-    <section class="py-12">
+    <section class="py-6">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
                 <!-- Main Content -->

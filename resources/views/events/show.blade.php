@@ -369,20 +369,14 @@
                                 @endif
                             @else
                                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                    <div class="flex items-center">
-                                        <svg class="w-5 h-5 text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                        </svg>
-                                        <span class="text-blue-800 font-medium">Login Required</span>
-                                    </div>
-                                    <p class="mt-1 text-sm text-blue-700">Please log in to register for this event.</p>
-                                    <div class="mt-3 flex space-x-3">
-                                        <a href="{{ route('login') }}" class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200">
-                                            Log In
+                                    <div class="text-center">
+                                        <a href="{{ route('register') }}" class="inline-flex items-center justify-center w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg text-base font-medium transition-colors duration-200">
+                                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                            </svg>
+                                            Register for This Event
                                         </a>
-                                        <a href="{{ route('register') }}" class="inline-flex items-center border border-blue-600 text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200">
-                                            Create Account
-                                        </a>
+                                        <p class="mt-2 text-sm text-blue-700">Create an account to register for this event</p>
                                     </div>
                                 </div>
                             @endif

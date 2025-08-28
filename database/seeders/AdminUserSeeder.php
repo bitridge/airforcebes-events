@@ -16,12 +16,13 @@ class AdminUserSeeder extends Seeder
         $admin = \App\Models\User::firstOrCreate(
             ['email' => 'admin@airforcebes.org'],
             [
-                'name' => 'Admin User',
+                'first_name' => 'Admin',
+                'last_name' => 'User',
                 'email' => 'admin@airforcebes.org',
                 'password' => bcrypt('password'),
                 'role' => 'admin',
                 'phone' => '+1-555-0100',
-                'organization' => 'AirforceBES',
+                'organization_name' => 'AirforceBES',
                 'is_active' => true,
                 'email_verified_at' => now(),
             ]
@@ -31,12 +32,13 @@ class AdminUserSeeder extends Seeder
         \App\Models\User::firstOrCreate(
             ['email' => 'admin2@airforcebes.org'],
             [
-                'name' => 'Event Manager',
+                'first_name' => 'Event',
+                'last_name' => 'Manager',
                 'email' => 'admin2@airforcebes.org',
                 'password' => bcrypt('password'),
                 'role' => 'admin',
                 'phone' => '+1-555-0101',
-                'organization' => 'AirforceBES',
+                'organization_name' => 'AirforceBES',
                 'is_active' => true,
                 'created_by' => $admin->id,
                 'email_verified_at' => now(),
@@ -47,12 +49,13 @@ class AdminUserSeeder extends Seeder
         \App\Models\User::firstOrCreate(
             ['email' => 'attendee@example.com'],
             [
-                'name' => 'John Doe',
+                'first_name' => 'John',
+                'last_name' => 'Doe',
                 'email' => 'attendee@example.com',
                 'password' => bcrypt('password'),
                 'role' => 'attendee',
                 'phone' => '+1-555-0200',
-                'organization' => 'Test Organization',
+                'organization_name' => 'Test Organization',
                 'is_active' => true,
                 'email_verified_at' => now(),
             ]
@@ -61,12 +64,13 @@ class AdminUserSeeder extends Seeder
         \App\Models\User::firstOrCreate(
             ['email' => 'jane.smith@example.com'],
             [
-                'name' => 'Jane Smith',
+                'first_name' => 'Jane',
+                'last_name' => 'Smith',
                 'email' => 'jane.smith@example.com',
                 'password' => bcrypt('password'),
                 'role' => 'attendee',
                 'phone' => '+1-555-0201',
-                'organization' => 'Corporate Partners',
+                'organization_name' => 'Corporate Partners',
                 'is_active' => true,
                 'email_verified_at' => now(),
             ]
@@ -75,12 +79,13 @@ class AdminUserSeeder extends Seeder
         \App\Models\User::firstOrCreate(
             ['email' => 'mike.wilson@example.com'],
             [
-                'name' => 'Mike Wilson',
+                'first_name' => 'Mike',
+                'last_name' => 'Wilson',
                 'email' => 'mike.wilson@example.com',
                 'password' => bcrypt('password'),
                 'role' => 'attendee',
                 'phone' => '+1-555-0202',
-                'organization' => 'Tech Innovators',
+                'organization_name' => 'Tech Innovators',
                 'is_active' => true,
                 'email_verified_at' => now(),
             ]

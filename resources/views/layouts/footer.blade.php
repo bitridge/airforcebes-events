@@ -77,7 +77,7 @@
         <!-- Bottom Section -->
         <div class="border-t border-slate-700 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
             <p class="text-sm text-slate-400">
-                {!! app_setting('appearance.footer_text', '&copy; ' . date('Y') . ' BES All rights reserved.') !!}
+                &copy; {{ date('Y') }} {{ app_name() }}. All rights reserved.
             </p>
             <div class="flex space-x-6 mt-4 md:mt-0">
                 <a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">Privacy Policy</a>

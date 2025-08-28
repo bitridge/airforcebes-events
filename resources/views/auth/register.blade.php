@@ -1,6 +1,6 @@
 <x-guest-layout>
     <div class="mb-4 text-sm text-gray-600">
-        {{ __('Join AirforceBES Events to register for exciting events and stay connected with the community.') }}
+        {{ __('Join :app_name to register for exciting events and stay connected with the community.', ['app_name' => app_name()]) }}
     </div>
 
     <form method="POST" action="{{ route('register') }}" class="space-y-6">

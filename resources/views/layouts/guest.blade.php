@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+        <title>{{ app_name() }}</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -24,7 +24,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                         </svg>
                     </div>
-                    <span class="text-2xl font-bold text-gray-900">AirforceBES Events</span>
+                    <span class="text-2xl font-bold text-gray-900">{{ app_name() }}</span>
                 </a>
             </div>
 
@@ -40,7 +40,7 @@
             <!-- Footer -->
             <div class="mt-8 text-center">
                 <p class="text-sm text-gray-600">
-                    &copy; {{ date('Y') }} AirforceBES Events. All rights reserved.
+                    &copy; {{ date('Y') }} {{ app_name() }}. All rights reserved.
                 </p>
             </div>
         </div>

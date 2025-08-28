@@ -12,7 +12,11 @@
                     <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200">
                         @if($event->featured_image)
                             <a href="{{ route('events.show', $event->slug) }}" class="block">
-                                <img src="{{ asset('storage/' . $event->featured_image) }}" alt="{{ $event->title }}" class="w-full h-48 object-cover hover:opacity-90 transition-opacity duration-200">
+                                <div class="relative w-full bg-slate-100">
+                                    <img src="{{ asset('storage/' . $event->featured_image) }}" 
+                                         alt="{{ $event->title }}" 
+                                         class="w-full h-auto max-h-48 object-contain hover:opacity-90 transition-opacity duration-200">
+                                </div>
                             </a>
                         @else
                             <a href="{{ route('events.show', $event->slug) }}" class="block">

@@ -20,7 +20,7 @@ class ReportingController extends Controller
     {
         // Get overview statistics
         $overview = [
-            'total_events' => Event::count(),
+            'total_events' => Event::published()->count(),
             'total_registrations' => Registration::count(),
             'total_attendees' => User::where('role', 'attendee')->count(),
             'checkin_rate' => $this->getCheckInRate(),
@@ -238,7 +238,7 @@ class ReportingController extends Controller
 
     private function getAttendancePatterns(Carbon $startDate): array
     {
-        $events = Event::where('start_date', '>=', $startDate)
+        $events = Event::published()->where('start_date', '>=', $startDate)
             ->withCount(['registrations', 'checkIns'])
             ->orderBy('start_date')
             ->get();
@@ -315,8 +315,8 @@ class ReportingController extends Controller
         return [
             'today_registrations' => Registration::whereDate('created_at', $today)->count(),
             'today_check_ins' => CheckIn::whereDate('checked_in_at', $today)->count(),
-            'upcoming_events' => Event::where('start_date', '>=', $today)->count(),
-            'active_events' => Event::where('start_date', '<=', $today)
+            'upcoming_events' => Event::published()->where('start_date', '>=', $today)->count(),
+            'active_events' => Event::published()->where('start_date', '<=', $today)
                 ->where('end_date', '>=', $today)
                 ->count(),
         ];
@@ -338,7 +338,7 @@ class ReportingController extends Controller
 
     private function getTopPerformingEvents(): array
     {
-        return Event::withCount(['registrations', 'checkIns'])
+        return Event::published()->withCount(['registrations', 'checkIns'])
             ->where('start_date', '>=', Carbon::now()->subDays(90))
             ->orderBy('registrations_count', 'desc')
             ->limit(10)
@@ -541,7 +541,7 @@ class ReportingController extends Controller
 
     private function getAverageCapacityUtilization(): float
     {
-        $events = Event::where('max_capacity', '>', 0)->get();
+        $events = Event::published()->where('max_capacity', '>', 0)->get();
         
         if ($events->isEmpty()) {
             return 0;
@@ -579,7 +579,7 @@ class ReportingController extends Controller
 
     private function getEventNames(): array
     {
-        return Event::orderBy('start_date', 'desc')
+        return Event::published()->orderBy('start_date', 'desc')
             ->limit(5)
             ->pluck('title')
             ->toArray();
@@ -587,7 +587,7 @@ class ReportingController extends Controller
 
     private function getEventRegistrationCounts(): array
     {
-        return Event::orderBy('start_date', 'desc')
+        return Event::published()->orderBy('start_date', 'desc')
             ->limit(5)
             ->withCount('registrations')
             ->pluck('registrations_count')
@@ -596,7 +596,7 @@ class ReportingController extends Controller
 
     private function getEventCheckInCounts(): array
     {
-        return Event::orderBy('start_date', 'desc')
+        return Event::published()->orderBy('start_date', 'desc')
             ->limit(5)
             ->withCount('checkIns')
             ->pluck('check_ins_count')

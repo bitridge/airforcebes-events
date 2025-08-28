@@ -18,7 +18,7 @@ Route::get('/debug', function () {
     try {
         $events = \App\Models\Event::published()->upcoming()->with(['creator', 'confirmedRegistrations'])->orderBy('start_date', 'asc')->limit(6)->get();
         $stats = [
-            'total_events' => \App\Models\Event::count(),
+            'total_events' => \App\Models\Event::published()->count(),
             'upcoming_events' => \App\Models\Event::published()->upcoming()->count(),
             'total_registrations' => \App\Models\Registration::confirmed()->count(),
             'total_attendees' => \App\Models\CheckIn::select('registration_id')->distinct()->count(),

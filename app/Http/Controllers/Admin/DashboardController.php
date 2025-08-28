@@ -17,7 +17,7 @@ class DashboardController extends Controller
     {
         // Key metrics
         $metrics = [
-            'total_events' => Event::count(),
+            'total_events' => Event::published()->count(),
             'total_registrations' => Registration::count(),
             'checkins_today' => CheckIn::whereDate('checked_in_at', today())->count(),
             'upcoming_events' => Event::published()->upcoming()->count(),

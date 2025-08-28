@@ -26,7 +26,7 @@ class HomeController extends Controller
 
         // Get statistics for the homepage
         $statistics = [
-            'total_events' => Event::count(),
+            'total_events' => Event::published()->count(),
             'upcoming_events' => Event::published()->upcoming()->count(),
             'total_registrations' => Registration::confirmed()->count(),
             'total_attendees' => CheckIn::select('registration_id')->distinct()->count(),

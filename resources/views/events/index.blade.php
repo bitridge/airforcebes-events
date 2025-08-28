@@ -109,7 +109,11 @@
                     @foreach($events as $event)
                         <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200">
                             @if($event->featured_image)
-                                <img src="{{ asset('storage/' . $event->featured_image) }}" alt="{{ $event->title }}" class="w-full h-48 object-cover">
+                                <div class="relative w-full bg-slate-100">
+                                    <img src="{{ asset('storage/' . $event->featured_image) }}" 
+                                         alt="{{ $event->title }}" 
+                                         class="w-full h-auto max-h-48 object-contain">
+                                </div>
                             @else
                                 <div class="w-full h-48 bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center">
                                     <svg class="w-16 h-16 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -15,7 +15,11 @@
                 <!-- Event Image -->
                 <div class="lg:col-span-1">
                     @if($event->featured_image)
-                        <img src="{{ asset('storage/' . $event->featured_image) }}" alt="{{ $event->title }}" class="w-full h-64 lg:h-80 object-cover rounded-lg">
+                        <div class="relative w-full">
+                            <img src="{{ asset('storage/' . $event->featured_image) }}" 
+                                 alt="{{ $event->title }}" 
+                                 class="w-full h-auto max-h-80 object-contain rounded-lg bg-slate-100">
+                        </div>
                     @else
                         <div class="w-full h-64 lg:h-80 bg-gradient-to-br from-slate-600 to-slate-800 rounded-lg flex items-center justify-center">
                             <svg class="w-24 h-24 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
